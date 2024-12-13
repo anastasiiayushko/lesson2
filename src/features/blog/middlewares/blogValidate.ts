@@ -1,9 +1,10 @@
 import {body} from 'express-validator';
 
 const blogValidateName = body('name')
+    .trim()
     .notEmpty().withMessage('The name field is required and cannot be empty')
     .isString().withMessage('The name field should be a string')
-    .trim()
+
     .isLength({max: 15}).withMessage('The name should not exceed 15 characters');
 
 const blogValidateDescription = body('description').isString().withMessage("Should be string")
