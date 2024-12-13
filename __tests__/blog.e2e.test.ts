@@ -3,7 +3,7 @@ import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {StatusCode} from "../src/types/status-code-types";
 import {BLOG_INPUT_VALID} from "./helpers/testData";
-import {generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData} from "./helpers/testUtils";
+import {generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData, createBlogTest} from "./helpers/testUtils";
 import {BlogInputModel} from "../src/types/input-output-types/blog-types";
 
 
@@ -15,13 +15,8 @@ const authHeaderBasicInvalid = getAuthHeaderBasicTest('admin:test')
 
 const authHeaderBasicValid = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
-const createBlogTest = async (blogData: BlogInputModel | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
-    const response = await request(app)
-        .post(SETTINGS.PATH.BLOGS)
-        .set({'Authorization': basicAuth})
-        .send(blogData);
-    // expect(response.status).toBe(StatusCode.CREATED_201);
-    return response;
+const createBlog = async (blogData: BlogInputModel | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
+    return await createBlogTest(app, blogData, basicAuth)
 };
 describe("BLOG CREATE PROTECTED", () => {
 
@@ -41,7 +36,7 @@ describe("BLOG CREATE PROTECTED", () => {
     });
 
     it("Create blog incorrect empty data, should be errorsMessage and status 400", async () => {
-        let res = await createBlogTest({});
+        let res = await createBlog({});
 
         expect(res.body).toMatchObject({
             errorsMessages: expect.arrayContaining([
@@ -56,7 +51,7 @@ describe("BLOG CREATE PROTECTED", () => {
 
     });
     it("Create incorrect field name empty, should be errorsMessage and status 400", async () => {
-        let res = await createBlogTest({
+        let res = await createBlog({
             ...BLOG_INPUT_VALID,
             name: "",
         })
@@ -71,7 +66,7 @@ describe("BLOG CREATE PROTECTED", () => {
 
     it("Create incorrect field name more than maxLen 15, should be errorsMessage and status 400", async () => {
         let nameMax = generateRandomStringForTest(16);
-        let res = await createBlogTest({
+        let res = await createBlog({
             ...BLOG_INPUT_VALID,
             name: nameMax,
         })
@@ -86,7 +81,7 @@ describe("BLOG CREATE PROTECTED", () => {
 
     it("Create data incorrect field description more then maxLen 500, should be errorsMessage and status 400", async () => {
         let descriptionMax = generateRandomStringForTest(501);
-        let response = await createBlogTest({
+        let response = await createBlog({
             ...BLOG_INPUT_VALID,
             description: descriptionMax
         })
@@ -103,7 +98,7 @@ describe("BLOG CREATE PROTECTED", () => {
     });
 
     it("Create data incorrect field description empty, should be errorsMessage and status 400", async () => {
-        let response = await createBlogTest({
+        let response = await createBlog({
             ...BLOG_INPUT_VALID,
             description: ""
         })
@@ -120,7 +115,7 @@ describe("BLOG CREATE PROTECTED", () => {
     });
 
     it("Create data incorrect field websiteUrl empty, should be errorsMessage and status 400", async () => {
-        let response = await createBlogTest({
+        let response = await createBlog({
             ...BLOG_INPUT_VALID,
             websiteUrl: ""
         })
@@ -137,7 +132,7 @@ describe("BLOG CREATE PROTECTED", () => {
     });
 
     it("Create data incorrect field websiteUrl, should be errorsMessage and status 400", async () => {
-        let response = await createBlogTest({
+        let response = await createBlog({
             ...BLOG_INPUT_VALID,
             websiteUrl: "http://djsdkfjdks.asdfjadsfjadkljf.asdfjkadsfjdkf"
         })
@@ -153,7 +148,7 @@ describe("BLOG CREATE PROTECTED", () => {
 
 
     it("Should be create blog and status 201", async () => {
-        let response = await createBlogTest(BLOG_INPUT_VALID)
+        let response = await createBlog(BLOG_INPUT_VALID)
 
         expect(response.status).toBe(StatusCode.CREATED_201);
 
@@ -170,7 +165,7 @@ describe("BLOG UPDATE PROTECTED", () => {
     });
 
     it("Update blog by id correct data. should be status 204", async () => {
-        let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
 
         expect(createdResponse.body).toEqual({
             id: expect.any(String),
@@ -207,7 +202,7 @@ describe("BLOG UPDATE PROTECTED", () => {
     });
 
     it("Update blog not invalid Auth. should be 401 ", async () => {
-        let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
 
         await request(app)
             .put(`${PATH_BLOG}/${createdResponse.body.id}`)
@@ -223,7 +218,7 @@ describe("BLOG UPDATE PROTECTED", () => {
     });
 
     it("Update blog by id not correct data. should be 400", async () => {
-        let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
         expect(createdResponse.body).toEqual({
             id: expect.any(String),  // id должно быть строкой
             ...BLOG_INPUT_VALID     // остальные поля должны совпасть с BLOG_INPUT_VALID
@@ -256,7 +251,7 @@ describe("BLOG DELETE PROTECTED", () => {
     });
 
     it("Delete blog invalid auth. should be status 401", async () => {
-        let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
         let blogId = createdResponse.body.id;
         expect(createdResponse.status).toBe(StatusCode.CREATED_201);
         expect(createdResponse.body).toEqual({
@@ -276,7 +271,7 @@ describe("BLOG DELETE PROTECTED", () => {
     });
 
     it("Delete blog not existing id. should be status 404", async () => {
-        await createBlogTest(BLOG_INPUT_VALID);
+        await createBlog(BLOG_INPUT_VALID);
 
         await request(app)
             .delete(`${PATH_BLOG}/1374467755`)
@@ -288,7 +283,7 @@ describe("BLOG DELETE PROTECTED", () => {
     });
 
     it("Delete blog by id. should be status 204", async () => {
-        let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
 
         let blogId = createdResponse.body.id;
 
@@ -319,14 +314,14 @@ describe("BLOG PUBLIC", () => {
         await request(app).get(PATH_BLOG + "/" + "12345").expect(StatusCode.NOT_FOUND_404)
     });
     it("Get blogs. should be status 200", async () => {
-        await createBlogTest(BLOG_INPUT_VALID);
+        await createBlog(BLOG_INPUT_VALID);
         let res = await request(app)
             .get(PATH_BLOG)
             .expect(StatusCode.OK_200);
         expect(res.body.length).toBe(1)
     });
     it("Get blog by existing id. should be status 200 and resource", async () => {
-       let createdResponse = await createBlogTest(BLOG_INPUT_VALID);
+        let createdResponse = await createBlog(BLOG_INPUT_VALID);
         expect(createdResponse.status).toBe(StatusCode.CREATED_201);
         let blog = createdResponse.body;
         let blogId = blog.id;

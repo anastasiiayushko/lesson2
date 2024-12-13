@@ -16,7 +16,7 @@ export class BlogRepository {
         return db.blogs.find(doc => doc.id === id) ?? null;
     }
 
-    createBlog = (blogData: Omit<BlogSchema, 'id'>): BlogSchema => {
+    createBlog = (blogData: BlogSchemaInput): BlogSchema => {
         let id: string = generateDbId();
         let createBlog = {
             ...blogData,

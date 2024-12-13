@@ -2,6 +2,9 @@ import {Express} from "express";
 import request from "supertest";
 import {StatusCode} from "../../src/types/status-code-types";
 import {SETTINGS} from "../../src/settings";
+import {BlogInputModel} from "../../src/types/input-output-types/blog-types";
+import {BLOG_INPUT_VALID} from "./testData";
+import {app} from "../../src/app";
 
 export const resetTestData = async (app: Express) => {
     await request(app).delete(`${SETTINGS.PATH.TESTING}/all-data`).expect(StatusCode.NO_CONTENT_204);
@@ -22,3 +25,11 @@ export const generateRandomStringForTest = (lengthSymbols: number): string => {
     return result;
 }
 
+export const createBlogTest = async (app: Express, blogData: BlogInputModel | {} = BLOG_INPUT_VALID, basicAuth:string) => {
+    const response = await request(app)
+        .post(SETTINGS.PATH.BLOGS)
+        .set({'Authorization': basicAuth})
+        .send(blogData);
+    // expect(response.status).toBe(StatusCode.CREATED_201);
+    return response;
+};

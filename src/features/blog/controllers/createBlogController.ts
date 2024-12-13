@@ -11,7 +11,12 @@ export const createBlogController = (req: Request<{}, {}, BlogInputModel>,
 
 
     let body = req.body;
-    let createBlog = blogRepository.createBlog(body);
+    let blogData = {
+        name: body.name,
+        description: body.description,
+        websiteUrl: body.websiteUrl
+    }
+    let createBlog = blogRepository.createBlog(blogData);
     res.status(StatusCode.CREATED_201).json(createBlog)
 
 }

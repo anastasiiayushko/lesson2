@@ -12,7 +12,13 @@ export const putBlogByIdController = (req: Request<{ id: string }, {}, BlogInput
         res.sendStatus(StatusCode.NOT_FOUND__404);
         return
     }
-    const bodyUpdate = req.body;
-    blogRepository.updateById(id, bodyUpdate);
+    const body = req.body;
+    let blogUpdate = {
+        name: body.name,
+        description: body.description,
+        websiteUrl: body.websiteUrl
+    }
+
+    blogRepository.updateById(id, blogUpdate);
     res.sendStatus(StatusCode.NO_CONTENT_204);
 }

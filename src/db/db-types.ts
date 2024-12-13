@@ -6,11 +6,15 @@ export type BlogSchema = {
 }
 
 export type BlogSchemaInput = Omit<BlogSchema, 'id'>
+
+
 export type PostSchema = {
-    id: string
+    id: string // maxLength: 30
     title: string
-    shortDescription: string,
-    content: string,
+    shortDescription: string, //maxLength: 100
+    content: string, //maxLength: 1000
     blogId: string,
     blogName: string
 }
+
+export type PostSchemaInput = Omit<PostSchema, 'id'>
