@@ -13,5 +13,5 @@ app.use(SETTINGS.PATH.POSTS, postRouter);
 app.use(SETTINGS.PATH.TESTING, testRouter);
 
 app.get('/', (req, res) => {
-    res.sendStatus(204);
+    res.send()
 });
