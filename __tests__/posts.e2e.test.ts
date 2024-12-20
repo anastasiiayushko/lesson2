@@ -3,7 +3,7 @@ import request from "supertest";
 import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {createBlogTest, generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData} from "./helpers/testUtils";
-import {BlogInputModel} from "../src/types/input-output-types/blog-types";
+import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID, POST_INPUT_VALID_WITHOUT_BLOG_ID} from "./helpers/testData";
 import {StatusCode} from "../src/types/status-code-types";
 import {PostInputModel} from "../src/types/input-output-types/post-types";
@@ -16,7 +16,7 @@ let PATH_TEST = SETTINGS.PATH.TESTING;
 const authHeaderBasicInvalid = getAuthHeaderBasicTest('admin:test')
 const authHeaderBasicValid = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
-const createBlog = async (blogData: BlogInputModel | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
+const createBlog = async (blogData: BlogInputModelType | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
     return await createBlogTest(app, blogData, basicAuth);
 };
 const createPost = async (postData: PostInputModel | {}, basicAuth = authHeaderBasicValid) => {
@@ -48,21 +48,24 @@ describe("POST CREATE PROTECTED", () => {
         let blog = blogResponse.body;
         let passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
-            blogId: blog.id
+            blogId: blog.id,
         }
 
-        let response = await createPost(passedPost);
+        let resCreatePost = await createPost(passedPost);
+        expect(resCreatePost.status).toBe(StatusCode.CREATED_201);
 
-        let postId = response.body.id;
-        expect(response.status).toBe(StatusCode.CREATED_201);
+        let postId = resCreatePost.body.id;
         let expectedPost = {
             ...passedPost,
             id: postId,
-            blogName: blog.name
+            blogName: blog.name,
+            createdAt: expect.any(String),
         }
-        expect(response.body).toEqual(expectedPost);
+        expect(resCreatePost.body).toMatchObject(expectedPost);
 
-        await request(app).get(`${PATH_POST}/${postId}`).expect(StatusCode.OK_200, expectedPost)
+        let resPostById = await request(app).get(`${PATH_POST}/${postId}`)
+        expect(resPostById.status).toBe(StatusCode.OK_200);
+        expect(resPostById.body).toMatchObject(expectedPost)
 
     });
     it("Should be 201, correct data and basic auth and adding not existing field", async () => {
@@ -72,21 +75,23 @@ describe("POST CREATE PROTECTED", () => {
         let passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
             blogId: blog.id,
-
         }
 
-        let response = await createPost({...passedPost, test: "test"});
+        let resCreatPost = await createPost({...passedPost, test: "test"});
+        expect(resCreatPost.status).toBe(StatusCode.CREATED_201);
 
-        let postId = response.body.id;
-        expect(response.status).toBe(StatusCode.CREATED_201);
+        let postId = resCreatPost.body.id;
         let expectedPost = {
             ...passedPost,
             id: postId,
-            blogName: blog.name
+            blogName: blog.name,
+            createdAt: expect.any(String),
         }
-        expect(response.body).toEqual(expectedPost);
+        expect(resCreatPost.body).toMatchObject(expectedPost);
 
-        await request(app).get(`${PATH_POST}/${postId}`).expect(StatusCode.OK_200, expectedPost)
+        let resPostById = await request(app).get(`${PATH_POST}/${postId}`);
+        expect(resPostById.status).toBe(StatusCode.OK_200);
+        expect(resPostById.body).toMatchObject(expectedPost)
 
     });
 
@@ -96,7 +101,7 @@ describe("POST CREATE PROTECTED", () => {
         let blog = blogResponse.body;
         let passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
-            blogId: blog.id + '1234'
+            blogId: blog.id + '12hg34'
         }
 
         let response = await createPost(passedPost);
@@ -357,7 +362,7 @@ describe("POST UPDATE PROTECTED", () => {
         let expectPost = {
             ...passedPost,
             blogName: blog.name,
-            title: generateRandomStringForTest(8)
+            title: generateRandomStringForTest(8),
         }
         await request(app)
             .put(PATH_POST + '/' + postId)
@@ -365,8 +370,9 @@ describe("POST UPDATE PROTECTED", () => {
             .send(expectPost)
             .expect(StatusCode.NO_CONTENT_204)
 
-
-        await request(app).get(PATH_POST + '/' + postId).expect(StatusCode.OK_200, {
+        let resPostById = await request(app).get(PATH_POST + '/' + postId)
+        expect(resPostById.status).toBe(StatusCode.OK_200);
+        expect(resPostById.body).toMatchObject({
             id: postId,
             ...expectPost,
         })
@@ -506,16 +512,16 @@ describe("POST DELETE PROTECTED", () => {
 })
 
 
-describe("POST PUBLIC", ()=>{
+describe("POST PUBLIC", () => {
     beforeEach(async () => {
         await resetTestData(app)
     })
 
-    it("should be empty array and status 200", async ()=>{
+    it("should be empty array and status 200", async () => {
         await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
     })
 
-    it("should be find post empty array and status 404 ", async ()=>{
-        await request(app).get(PATH_POST +"/"+"-3481237484578245").expect(StatusCode.NOT_FOUND_404)
+    it("should be find post empty array and status 404 ", async () => {
+        await request(app).get(PATH_POST + "/" + "-3481237484578245").expect(StatusCode.NOT_FOUND_404)
     })
 })

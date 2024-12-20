@@ -1,40 +1,48 @@
-import {db} from "../../db/db";
-import {PostSchema, PostSchemaInput} from "../../db/db-types";
+import {postCollection} from "../../db/db";
+import {PostSchemaInputType, PostSchemaType} from "../../db/db-types";
 import {generateDbId} from "../../db/generateDbId";
+import {ObjectId} from "mongodb";
+
+type MapperExcludeType = PostSchemaType & {
+    _id?: ObjectId
+}
 
 export class PostRepository {
-    getAll = (): PostSchema[] => {
-        return db.posts;
-    }
-    getById = (id: string): PostSchema | null => {
-        let post = db.posts.find(doc => doc.id === id);
-        if (post) {
-            return post
+    _mapperExcludeObjectId = (item: MapperExcludeType): PostSchemaType => {
+        return {
+            id: item.id,
+            title: item.title,
+            shortDescription: item.shortDescription,
+            content: item.content,
+            blogId: item.blogId,
+            blogName: item.blogName,
+            createdAt: item.createdAt,
         }
-        return null
     }
-    createPost = (postData: PostSchemaInput): PostSchema => {
+    getAll = async (): Promise<PostSchemaType[]> => {
+        return postCollection.find({}, {projection: {_id: 0}}).toArray();
+    }
+
+    getById = async (id: string): Promise<PostSchemaType | null> => {
+        return await postCollection.findOne({id: id}, {projection: {_id: 0}});
+    }
+    createPost = async (postData: PostSchemaInputType): Promise<PostSchemaType> => {
+        let createdAt = new Date().toISOString();
         let created = {
             id: generateDbId(),
             ...postData,
+            createdAt: createdAt
         }
-        db.posts.push(created);
-        return created
+        await postCollection.insertOne(created);
+        return this._mapperExcludeObjectId(created)
     }
-    updatePostById = (id: string, postData: PostSchemaInput): boolean => {
-        db.posts = db.posts.map(doc => {
-            if (doc.id === id) {
-                return {
-                    ...doc,
-                    ...postData
-                }
-            }
-            return doc
-        })
-        return true
+    updatePostById = async (id: string, postData: PostSchemaInputType): Promise<boolean> => {
+        let res = await postCollection.updateOne({id: id}, {$set: postData});
+        return res.matchedCount === 1;
     }
 
-    delPostById = (id: string) => {
-        db.posts = db.posts.filter(doc => doc.id !== id)
+    delPostById = async (id: string): Promise<boolean> => {
+        let res = await postCollection.deleteOne({id: id});
+        return res.deletedCount === 1;
     }
 }

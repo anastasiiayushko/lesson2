@@ -1,20 +1,18 @@
 import {Router} from 'express'
-import {getBlogsController} from "./controllers/getBlogsController";
-import {createBlogController} from "./controllers/createBlogController";
-import {putBlogByIdController} from "./controllers/putBlogByIdController";
-import {delBlogByIdController} from "./controllers/delBlogByIdController";
 import {bodyValidate} from "./middlewares/blogValidate";
 import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware";
-import {getBlogByIdController} from "./controllers/getBlogByIdController";
 import {adminAuthMiddleware} from "../../middlewares/adminAuthMiddleware";
+import {BlogController} from "./controllers/blogController";
 
 
 export const blogRouter = Router();
 
-blogRouter.get('/', getBlogsController);
-blogRouter.get('/:id', getBlogByIdController);
+const blogController = new BlogController();
+
+blogRouter.get('/', blogController.getBlogs);
+blogRouter.get('/:id', blogController.getBlogById);
 
 /** protected points */
-blogRouter.post('/', adminAuthMiddleware, ...bodyValidate, validateInputMiddleware, createBlogController);
-blogRouter.put('/:id', adminAuthMiddleware, ...bodyValidate, validateInputMiddleware, putBlogByIdController);
-blogRouter.delete('/:id', adminAuthMiddleware, delBlogByIdController);
+blogRouter.post('/', adminAuthMiddleware, ...bodyValidate, validateInputMiddleware, blogController.createBlog);
+blogRouter.put('/:id', adminAuthMiddleware, ...bodyValidate, validateInputMiddleware, blogController.updateBlogById);
+blogRouter.delete('/:id', adminAuthMiddleware, blogController.deleteBlogById);

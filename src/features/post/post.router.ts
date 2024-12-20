@@ -1,19 +1,17 @@
 import {Router} from "express";
-import {getPostByIdController} from "./controllers/getPostByIdController";
-import {getPostsController} from "./controllers/getPostsController";
-import {createPostController} from "./controllers/createPostController";
 import {postValidate} from "./middlewares/postValidate";
 import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware";
 import {adminAuthMiddleware} from "../../middlewares/adminAuthMiddleware";
-import {putPostByIdController} from "./controllers/putPostByIdController";
-import {delPostByIdController} from "./controllers/delPostByIdController";
+import {PostController} from "./controllers/postController";
 
 export const postRouter = Router();
 
-postRouter.get('/', getPostsController);
-postRouter.get('/:id', getPostByIdController);
+const postController = new PostController();
+
+postRouter.get('/', postController.getPosts);
+postRouter.get('/:id', postController.getPost);
 
 //protected
-postRouter.post('/', adminAuthMiddleware,  ...postValidate, validateInputMiddleware, createPostController);
-postRouter.put('/:id', adminAuthMiddleware,  ...postValidate, validateInputMiddleware, putPostByIdController);
-postRouter.delete('/:id', adminAuthMiddleware,  delPostByIdController);
+postRouter.post('/', adminAuthMiddleware,  ...postValidate, validateInputMiddleware, postController.createPost);
+postRouter.put('/:id', adminAuthMiddleware,  ...postValidate, validateInputMiddleware, postController.updatePost);
+postRouter.delete('/:id', adminAuthMiddleware,  postController.deletePost);

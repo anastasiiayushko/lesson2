@@ -1,12 +1,12 @@
 import {Router} from "express";
-import {setDB} from "../../db/db";
+import {resetDB} from "../../db/db";
 import {StatusCode} from "../../types/status-code-types";
 import {adminAuthMiddleware} from "../../middlewares/adminAuthMiddleware";
 
 export const testRouter = Router();
 
-testRouter.delete('/all-data', (req, res) => {
-    setDB(null)
+testRouter.delete('/all-data', async (req, res) => {
+    await resetDB();
     res.sendStatus(StatusCode.NO_CONTENT_204)
 
 })

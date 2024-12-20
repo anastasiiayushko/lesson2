@@ -1,10 +1,11 @@
 import request from "supertest";
+import {Response} from "supertest";
 import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {StatusCode} from "../src/types/status-code-types";
 import {BLOG_INPUT_VALID} from "./helpers/testData";
 import {generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData, createBlogTest} from "./helpers/testUtils";
-import {BlogInputModel} from "../src/types/input-output-types/blog-types";
+import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
@@ -15,9 +16,12 @@ const authHeaderBasicInvalid = getAuthHeaderBasicTest('admin:test')
 
 const authHeaderBasicValid = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
-const createBlog = async (blogData: BlogInputModel | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
+const createBlog = async (blogData: BlogInputModelType | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid): Promise<Response> => {
     return await createBlogTest(app, blogData, basicAuth)
 };
+
+
+
 describe("BLOG CREATE PROTECTED", () => {
 
     beforeEach(async () => {
@@ -148,12 +152,12 @@ describe("BLOG CREATE PROTECTED", () => {
 
 
     it("Should be create blog and status 201", async () => {
-        let response = await createBlog(BLOG_INPUT_VALID)
+        let resCreated = await createBlog(BLOG_INPUT_VALID)
 
-        expect(response.status).toBe(StatusCode.CREATED_201);
+        expect(resCreated.status).toBe(StatusCode.CREATED_201);
 
-        await request(app).get(`${PATH_BLOG}/${response.body.id}`)
-            .expect(StatusCode.OK_200, response.body)
+        await request(app).get(`${PATH_BLOG}/${resCreated.body.id}`)
+            .expect(StatusCode.OK_200, resCreated.body)
 
     })
 
@@ -167,12 +171,15 @@ describe("BLOG UPDATE PROTECTED", () => {
     it("Update blog by id correct data. should be status 204", async () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
 
-        expect(createdResponse.body).toEqual({
+        expect(createdResponse.body).toMatchObject({
             id: expect.any(String),
-            ...BLOG_INPUT_VALID
+            createdAt: expect.any(String),
+            isMembership: false,
+            ...BLOG_INPUT_VALID,
         });
 
         let blogId = createdResponse.body.id;
+
         let updateBody = {
             name: BLOG_INPUT_VALID.name,
             description: 'update description',
@@ -185,12 +192,16 @@ describe("BLOG UPDATE PROTECTED", () => {
             .send(updateBody)
             .expect(StatusCode.NO_CONTENT_204);
 
-        await request(app)
-            .get(`${PATH_BLOG}/${blogId}`)
-            .expect(StatusCode.OK_200, {
-                ...updateBody,
-                id: blogId
-            });
+        let resUpdate = await request(app)
+            .get(`${PATH_BLOG}/${blogId}`);
+        expect(resUpdate.status).toBe(StatusCode.OK_200);
+        expect(resUpdate.body).toMatchObject({
+            ...updateBody,
+            id: blogId,
+            createdAt: expect.any(String),
+            isMembership: false,
+        })
+
     });
 
     it("Update blog not exist id. should be status 404", async () => {
@@ -217,10 +228,12 @@ describe("BLOG UPDATE PROTECTED", () => {
 
     });
 
-    it("Update blog by id not correct data. should be 400", async () => {
+    it("Update blog by id not correct field websiteUrl. should be 400", async () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
-        expect(createdResponse.body).toEqual({
+        expect(createdResponse.body).toMatchObject({
             id: expect.any(String),  // id должно быть строкой
+            createdAt: expect.any(String),
+            isMembership: false,
             ...BLOG_INPUT_VALID     // остальные поля должны совпасть с BLOG_INPUT_VALID
         });
         let blogId = createdResponse.body.id;
@@ -244,6 +257,8 @@ describe("BLOG UPDATE PROTECTED", () => {
             .expect(StatusCode.OK_200, createdResponse.body);
     });
 });
+
+
 describe("BLOG DELETE PROTECTED", () => {
 
     beforeEach(async () => {
@@ -254,10 +269,11 @@ describe("BLOG DELETE PROTECTED", () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
         let blogId = createdResponse.body.id;
         expect(createdResponse.status).toBe(StatusCode.CREATED_201);
-        expect(createdResponse.body).toEqual({
+        expect(createdResponse.body).toMatchObject({
             ...BLOG_INPUT_VALID,
             id: blogId,
-
+            createdAt: expect.any(String),
+            isMembership: false,
         });
 
         await request(app)
@@ -274,7 +290,7 @@ describe("BLOG DELETE PROTECTED", () => {
         await createBlog(BLOG_INPUT_VALID);
 
         await request(app)
-            .delete(`${PATH_BLOG}/1374467755`)
+            .delete(`${PATH_BLOG}/8k88k1374467755`)
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NOT_FOUND_404);
 
@@ -307,13 +323,13 @@ describe("BLOG PUBLIC", () => {
 
     });
 
-    it("Get blogs. should be status 200 and empty array", async () => {
+    it("Get a list blogs in empty collection. Should be status 200 and []", async () => {
         await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
     });
-    it("Get blog by id, empty resource. should be status 404", async () => {
+    it("Get a blog using a non-existent id from an empty collection", async () => {
         await request(app).get(PATH_BLOG + "/" + "12345").expect(StatusCode.NOT_FOUND_404)
     });
-    it("Get blogs. should be status 200", async () => {
+    it("Get a list blogs in not empty collection. Should be status 200", async () => {
         await createBlog(BLOG_INPUT_VALID);
         let res = await request(app)
             .get(PATH_BLOG)

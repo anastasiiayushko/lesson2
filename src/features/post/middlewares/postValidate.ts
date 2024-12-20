@@ -20,8 +20,8 @@ const contentValidate = body('content').isString().withMessage("filed to be stri
 const blogIdValidate = body('blogId')
     .isString().withMessage("field to be string")
     .trim().notEmpty().withMessage("filed is empty")
-    .custom(blogId => {
-        let blog = blogRepository.getById(blogId);
+    .custom(async (blogId) => {
+        let blog = await blogRepository.getById(blogId);
         if (blog) {
             return true;
         }

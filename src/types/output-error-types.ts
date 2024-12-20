@@ -1,4 +1,4 @@
-import {BlogInputModel} from "./input-output-types/blog-types";
+import {BlogInputModelType} from "./input-output-types/blog-types";
 
 export type ErrorItemType = {
     message: string,
@@ -8,4 +8,4 @@ export type ErrorItemType = {
 export  type  ApiErrorResultType = {
     errorsMessages: ErrorItemType[] | null
 }
-export type ErrorFieldType = keyof BlogInputModel;
+export type ErrorFieldType = keyof BlogInputModelType;
