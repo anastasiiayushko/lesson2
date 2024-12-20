@@ -1,14 +1,9 @@
 import {Express} from "express";
-import request from "supertest";
-import { Response } from 'supertest';
+import request, {Response} from "supertest";
 import {StatusCode} from "../../src/types/status-code-types";
 import {SETTINGS} from "../../src/settings";
 import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID} from "./testData";
-
-
-
-
 
 
 export const resetTestData = async (app: Express) => {

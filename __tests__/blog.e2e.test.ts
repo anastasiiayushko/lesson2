@@ -1,10 +1,9 @@
-import request from "supertest";
-import {Response} from "supertest";
+import request, {Response} from "supertest";
 import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {StatusCode} from "../src/types/status-code-types";
 import {BLOG_INPUT_VALID} from "./helpers/testData";
-import {generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData, createBlogTest} from "./helpers/testUtils";
+import {createBlogTest, generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData} from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 
 
