@@ -1,6 +1,5 @@
-import {blogCollection, db} from "../../db/db";
+import {blogCollection} from "../../db/db";
 import {BlogSchemaInputType, BlogSchemaType} from "../../db/db-types";
-import {generateDbId} from "../../db/generateDbId";
 import {ObjectId} from "mongodb";
 
 type MapperExcludeType = BlogSchemaType & {
@@ -30,21 +29,15 @@ export class BlogRepository {
         return await blogCollection.findOne({id: id}, {projection: {_id: 0}});
     }
 
-    createBlog = async (blogData: BlogSchemaInputType): Promise<BlogSchemaType> => {
-        let id: string = generateDbId();
-        let createBlog = {
-            ...blogData,
-            id: id,
-            createdAt: new Date().toISOString(),
-            isMembership: false,
-        }
+    createBlog = async (blogData: BlogSchemaType): Promise<BlogSchemaType> => {
 
-        await blogCollection.insertOne(createBlog);
+
+        await blogCollection.insertOne(blogData);
         /** result operation insertOne
          acknowledged: true,
          insertedId: ObjectId('6764204f5f98221d8d97f09d')
          */
-        return this._mapperExcludeObjectId(createBlog);
+        return this._mapperExcludeObjectId(blogData);
 
     }
     updateById = async (id: string,

@@ -1,22 +1,28 @@
-import {PostRepository} from "../postRepository";
 import {Request, Response} from "express";
-import {PostViewModel} from "../../../types/input-output-types/post-types";
+import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {StatusCode} from "../../../types/status-code-types";
-import {BlogRepository} from "../../blog/blogRepository";
-import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
+import {PostService} from "../postService";
 
 export class PostController {
-    private _postRepo = new PostRepository();
-    private _blogRepo = new BlogRepository();
+    private _postService = new PostService();
+
+    _mapperBodyPost = (body: PostInputModel): PostInputModel => {
+        return {
+            title: body.title,
+            shortDescription: body.shortDescription,
+            content: body.content,
+            blogId: body.blogId,
+        }
+    }
 
     getPosts = async (req: Request, res: Response<PostViewModel[]>) => {
-        let posts = await this._postRepo.getAll();
+        let posts = await this._postService.getAll();
         res.status(StatusCode.OK_200).json(posts);
     }
 
-    getPost = async (req: Request, res: Response<PostViewModel>) => {
+    getPost = async (req: Request<{id:string}>, res: Response<PostViewModel>) => {
         let id = req.params.id;
-        let post = await this._postRepo.getById(id);
+        let post = await this._postService.getById(id);
         if (!post) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
@@ -24,35 +30,24 @@ export class PostController {
         res.status(StatusCode.OK_200).json(post);
     }
 
-    createPost = async (req: Request, res: Response<PostViewModel>) => {
+    createPost = async (req: Request<{}, {}, PostInputModel>,
+                        res: Response<PostViewModel>) => {
         let body = req.body;
-        let blog = await this._blogRepo.getById(body.blogId) as BlogViewModelType;
 
-        let postData = {
-            title: body.title,
-            shortDescription: body.shortDescription,
-            content: body.content,
-            blogId: blog.id,
-            blogName: blog.name
-        }
-        let createdPost = await this._postRepo.createPost(postData);
+        let postData = this._mapperBodyPost(body)
+        let createdPost = await this._postService.createPost(postData);
 
         res.status(StatusCode.CREATED_201).json(createdPost);
     }
 
-    updatePost = async (req: Request<{ id: string }>, res: Response) => {
+    updatePost = async (req: Request<{ id: string }, {}, PostInputModel>,
+                        res: Response) => {
         let postId = req.params.id;
         let body = req.body;
-        let blog = await this._blogRepo.getById(body.blogId) as BlogViewModelType;
 
-        let postData = {
-            title: body.title,
-            shortDescription: body.shortDescription,
-            content: body.content,
-            blogId: blog.id,
-            blogName: blog.name
-        }
-        let isUpdatedPost = await this._postRepo.updatePostById(postId, postData);
+        let postData = this._mapperBodyPost(body);
+
+        let isUpdatedPost = await this._postService.updatePostById(postId, postData);
 
         if (!isUpdatedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
@@ -64,7 +59,7 @@ export class PostController {
     deletePost = async (req: Request<{ id: string }>,
                         res: Response) => {
         let id = req.params.id;
-        let isDeletedPost = await this._postRepo.delPostById(id)
+        let isDeletedPost = await this._postService.delPostById(id)
         if (!isDeletedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;

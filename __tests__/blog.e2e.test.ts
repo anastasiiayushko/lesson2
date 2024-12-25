@@ -31,11 +31,11 @@ describe("BLOG CREATE PROTECTED", () => {
         await request(app)
             .post(PATH_BLOG)
             .set({'Authorization': authHeaderBasicInvalid})
-            .expect(401)
+            .expect(StatusCode.UNAUTHORIZED_401)
 
         await request(app)
             .get(PATH_BLOG)
-            .expect(200, [])
+            .expect(StatusCode.OK_200, [])
     });
 
     it("Create blog incorrect empty data, should be errorsMessage and status 400", async () => {
@@ -50,7 +50,7 @@ describe("BLOG CREATE PROTECTED", () => {
         });
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        await request(app).get(PATH_BLOG).expect(200, [])
+        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
 
     });
     it("Create incorrect field name empty, should be errorsMessage and status 400", async () => {
@@ -64,7 +64,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app).get(PATH_BLOG).expect(200, [])
+        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
     });
 
     it("Create incorrect field name more than maxLen 15, should be errorsMessage and status 400", async () => {
@@ -79,7 +79,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app).get(PATH_BLOG).expect(200, [])
+        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
     });
 
     it("Create data incorrect field description more then maxLen 500, should be errorsMessage and status 400", async () => {
@@ -97,7 +97,7 @@ describe("BLOG CREATE PROTECTED", () => {
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
         await request(app)
             .get(PATH_BLOG)
-            .expect(200, [])
+            .expect(StatusCode.OK_200, [])
     });
 
     it("Create data incorrect field description empty, should be errorsMessage and status 400", async () => {
@@ -114,7 +114,7 @@ describe("BLOG CREATE PROTECTED", () => {
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
         await request(app)
             .get(PATH_BLOG)
-            .expect(200, [])
+            .expect(StatusCode.OK_200, [])
     });
 
     it("Create data incorrect field websiteUrl empty, should be errorsMessage and status 400", async () => {
@@ -131,7 +131,7 @@ describe("BLOG CREATE PROTECTED", () => {
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
         await request(app)
             .get(PATH_BLOG)
-            .expect(200, [])
+            .expect(StatusCode.OK_200, [])
     });
 
     it("Create data incorrect field websiteUrl, should be errorsMessage and status 400", async () => {
@@ -146,7 +146,7 @@ describe("BLOG CREATE PROTECTED", () => {
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        await request(app).get(PATH_BLOG).expect(200, [])
+        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
     });
 
 
