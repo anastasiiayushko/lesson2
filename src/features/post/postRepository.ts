@@ -1,5 +1,5 @@
 import {postCollection} from "../../db/db";
-import {PostSchemaInputType, PostSchemaType} from "../../db/db-types";
+import {PostSchemaInputType, PostSchemaType} from "../../db/db-post-type";
 import {generateDbId} from "../../db/generateDbId";
 import {ObjectId} from "mongodb";
 

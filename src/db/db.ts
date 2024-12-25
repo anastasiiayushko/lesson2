@@ -1,6 +1,7 @@
-import {BlogSchemaType, PostSchemaType} from "./db-types";
+import {BlogSchemaType} from "./db-blog-type";
 import {Collection, Db, MongoClient} from "mongodb";
 import {SETTINGS} from "../settings";
+import {PostSchemaType} from "./db-post-type";
 
 export type DBType = {
     blogs: BlogSchemaType [],

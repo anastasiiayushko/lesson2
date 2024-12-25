@@ -1,5 +1,5 @@
 import {blogCollection} from "../../db/db";
-import {BlogSchemaInputType, BlogSchemaType} from "../../db/db-types";
+import {BlogSchemaInputType, BlogSchemaType} from "../../db/db-blog-type";
 import {ObjectId} from "mongodb";
 
 type MapperExcludeType = BlogSchemaType & {

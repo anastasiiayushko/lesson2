@@ -1,9 +1,9 @@
-import {PostSchemaInputType} from "../../db/db-types";
 import {generateDbId} from "../../db/generateDbId";
 import {PostRepository} from "./postRepository";
 import {BlogRepository} from "../blog/blogRepository";
 import {PostInputModel, PostViewModel} from "../../types/input-output-types/post-types";
 import {BlogViewModelType} from "../../types/input-output-types/blog-types";
+import {PostSchemaInputType} from "../../db/db-post-type";
 
 
 export class PostService {
