@@ -28,4 +28,9 @@ const blogIdValidate = body('blogId')
         throw new Error("Blog doesn't exist");
     });
 
-export const postValidate = [titleValidate, shortDescriptionValidate, contentValidate, blogIdValidate]
+export const postValidate = [titleValidate, shortDescriptionValidate, contentValidate, blogIdValidate];
+export const postValidateWithoutBlogId = [
+    titleValidate,
+    shortDescriptionValidate,
+    contentValidate
+];

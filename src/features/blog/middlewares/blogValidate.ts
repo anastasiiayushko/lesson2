@@ -17,7 +17,7 @@ const blogValidateWebsiteUrl = body('websiteUrl')
     }).withMessage('not correct url')
     .isLength({min: 1, max: 100}).withMessage('more then 100 or 0')
 
-export const bodyValidate = [
+export const blogValidate = [
     blogValidateName,
     blogValidateDescription,
     blogValidateWebsiteUrl

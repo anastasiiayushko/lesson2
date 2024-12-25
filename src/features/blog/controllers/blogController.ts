@@ -1,15 +1,14 @@
-import {BlogRepository} from "../blogRepository";
 import {Request, Response} from "express";
 import {BlogInputModelType, BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {StatusCode} from "../../../types/status-code-types";
 import {BlogService} from "../blogService";
+import {PostService} from "../../post/postService";
+import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 
 
 export class BlogController {
     private _blogService = new BlogService()
-
-    constructor() {
-    }
+    private _postService = new PostService()
 
     getBlogs = async (req: Request,
                       res: Response<BlogViewModelType[]>) => {
@@ -29,17 +28,22 @@ export class BlogController {
         res.status(StatusCode.OK_200).json(blog);
     }
 
+    createPostForSpecificBlog = async (req: Request<{ blogId: string }, {}, PostInputModel>, res: Response<PostViewModel>) => {
+        let blogId = req.params.blogId;
+        let body = {...req.body, blogId: blogId};
+        let createdPost = await this._postService.createPost(body);
+        if (!createdPost) {
+            res.sendStatus(StatusCode.NOT_FOUND_404)
+            return
+        }
+        res.status(StatusCode.CREATED_201).json(createdPost);
+
+    }
     createBlog =
         async (req: Request<{}, {}, BlogInputModelType>,
                res: Response<BlogViewModelType>) => {
 
-            let body = req.body;
-            let blogData = {
-                name: body.name,
-                description: body.description,
-                websiteUrl: body.websiteUrl,
-            }
-            let createBlog = await this._blogService.createBlog(blogData);
+            let createBlog = await this._blogService.createBlog(req.body);
             res.status(StatusCode.CREATED_201).json(createBlog);
 
         }
@@ -48,17 +52,8 @@ export class BlogController {
         async (req: Request<{ id: string }, {}, BlogInputModelType>,
                res: Response) => {
             let id = req.params.id;
-            const body = req.body;
-
-            let blogUpdate = {
-                name: body.name,
-                description: body.description,
-                websiteUrl: body.websiteUrl
-            }
-            let isUpdated = await this._blogService.updateById(id, blogUpdate)
-
+            let isUpdated = await this._blogService.updateById(id, req.body)
             if (isUpdated) {
-
                 res.sendStatus(StatusCode.NO_CONTENT_204);
                 return;
             }

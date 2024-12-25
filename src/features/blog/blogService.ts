@@ -6,7 +6,12 @@ import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-ty
 export class BlogService {
     private _blogRepo = new BlogRepository()
 
-    constructor() {
+    _mapperBodyBlog = (body: BlogInputModelType): BlogInputModelType => {
+        return {
+            name: body.name,
+            description: body.description,
+            websiteUrl: body.websiteUrl,
+        }
     }
 
 
@@ -17,10 +22,11 @@ export class BlogService {
         return  await this._blogRepo.getById(id);
     }
 
-    createBlog = async (blogData: BlogInputModelType): Promise<BlogViewModelType> => {
+    createBlog = async (body: BlogInputModelType): Promise<BlogViewModelType> => {
         let id: string = generateDbId();
+        let bodyBlog = this._mapperBodyBlog(body)
         let createBlog = {
-            ...blogData,
+            ...bodyBlog,
             id: id,
             createdAt: new Date().toISOString(),
             isMembership: false,
@@ -30,8 +36,8 @@ export class BlogService {
 
     }
     updateById = async (id: string,
-                        blogUpdate: Omit<BlogInputModelType, 'createdAt' | 'isMembership'>): Promise<boolean> => {
-
+                        body: Omit<BlogInputModelType, 'createdAt' | 'isMembership'>): Promise<boolean> => {
+        let blogUpdate = this._mapperBodyBlog(body)
        return await this._blogRepo.updateById(id, blogUpdate);
 
     }
