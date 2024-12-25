@@ -24,7 +24,6 @@ export class BlogService {
             sortBy: query?.sortBy ?? 'createdAt',
             sortDirection: query?.sortDirection ?? 'desc',
             searchNameTerm: query.searchNameTerm ? query.searchNameTerm : null,
-
         }
     }
 

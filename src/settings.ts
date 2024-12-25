@@ -16,7 +16,7 @@ enum SettingsDBCollection {
 
 
 export const SETTINGS = {
-    PORT: process.env.PORT || 3003,
+    PORT: process.env.PORT || 3005,
     PATH: {
         BLOGS: SettingsPath.blogs,
         POSTS: SettingsPath.posts,

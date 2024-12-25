@@ -4,7 +4,7 @@ import {StatusCode} from "../../../types/status-code-types";
 import {BlogService} from "../blogService";
 import {PostService} from "../../post/postService";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
-import {BlogQueryInputType} from "../../../db/db-blog-type";
+import {BlogQueryInputType, BlogSchemaType} from "../../../db/db-blog-type";
 import {PaginationViewModelType} from "../../../db/db-types";
 
 
@@ -12,11 +12,16 @@ export class BlogController {
     private _blogService = new BlogService()
     private _postService = new PostService()
 
-    getBlogsQuery = async (req: Request<{}, {}, {}, BlogQueryInputType>,
-                           res: Response<PaginationViewModelType<BlogViewModelType>>) => {
-        let response = await this._blogService.getBlogsQuery(req.query)
-        return res.status(StatusCode.OK_200).json(response);
-    }
+    getBlogsWithPaging =
+        async (req: Request<{}, {}, {}, BlogQueryInputType>,
+               res: Response
+        ) => {
+            res.send(req.query)
+            // let test = req.query;
+            // let response
+            //     = await this._blogService.getBlogsQuery(req.query)
+            // return res.status(StatusCode.OK_200).json(response);
+        }
     getBlogs = async (req: Request,
                       res: Response<BlogViewModelType[]>) => {
 

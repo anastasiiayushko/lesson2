@@ -10,7 +10,7 @@ export const blogRouter = Router();
 
 const blogController = new BlogController();
 
-blogRouter.get('/', blogController.getBlogs);
+blogRouter.get('/', blogController.getBlogsWithPaging);
 blogRouter.get('/:id', blogController.getBlogById);
 
 /** protected points */
