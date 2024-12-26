@@ -1,5 +1,6 @@
 import {Router} from 'express'
-import {blogQueryValidate, blogValidate} from "./middlewares/blogValidate";
+import {blogValidate} from "./middlewares/blogValidate";
+import {blogQueryValidate} from "./middlewares/blogQueryValidate";
 import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware";
 import {adminAuthMiddleware} from "../../middlewares/adminAuthMiddleware";
 import {BlogController} from "./controllers/blogController";
