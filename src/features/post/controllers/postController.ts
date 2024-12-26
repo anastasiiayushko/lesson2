@@ -13,6 +13,7 @@ export class PostController {
     getPosts = async (req: Request<{}, {}, {}, PostQueryInputType>,
                       res: Response<PaginationViewModelType<PostSchemaType>>) => {
         let query = postQueryPagingDef(req.query);
+        console.log(req.query)
         let posts = await this._postService.getAll(query);
         res.status(StatusCode.OK_200).json(posts);
     }
