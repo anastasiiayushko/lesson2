@@ -3,11 +3,14 @@ import {PostRepository} from "./postRepository";
 import {BlogRepository} from "../blog/blogRepository";
 import {PostInputModel, PostViewModel} from "../../types/input-output-types/post-types";
 import {BlogViewModelType} from "../../types/input-output-types/blog-types";
-import {PostSchemaInputType} from "../../db/db-post-type";
+import {PostQueryInputType, PostSchemaInputType} from "../../db/db-post-type";
+import {PostQueryRepository} from "./postQueryRepository";
+import {PaginationViewModelType} from "../../db/db-types";
 
 
 export class PostService {
     private _postRepo = new PostRepository();
+    private _postQueryRepo = new PostQueryRepository();
     private _blogRepo = new BlogRepository();
     _mapperBodyPost = (body: PostInputModel): PostInputModel => {
         return {
@@ -17,8 +20,9 @@ export class PostService {
             blogId: body.blogId,
         }
     }
-    getAll = async (): Promise<PostViewModel[]> => {
-        return await this._postRepo.getAll();
+    getAll = async (query: PostQueryInputType):
+        Promise<PaginationViewModelType<PostViewModel>> => {
+        return await this._postQueryRepo.getPostQuery(query);
     }
 
     getById = async (id: string): Promise<PostViewModel | null> => {

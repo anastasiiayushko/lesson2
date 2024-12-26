@@ -1,7 +1,7 @@
 import {generateDbId} from "../../db/generateDbId";
 import {BlogRepository} from "./blogRepository";
 import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-types/blog-types";
-import {BlogQueryInputType, BlogSchemaType} from "../../db/db-blog-type";
+import {BlogQueryInputType} from "../../db/db-blog-type";
 import {PaginationViewModelType} from "../../db/db-types";
 import {BlogQueryRepository} from "./blogQueryRepository";
 
@@ -17,20 +17,11 @@ export class BlogService {
             websiteUrl: body.websiteUrl,
         }
     }
-    _utilBlogQuery = (query: BlogQueryInputType): BlogQueryInputType => {
-        return {
-            pageNumber: query?.pageNumber ?? 1,
-            pageSize: query?.pageSize ?? 10,
-            sortBy: query?.sortBy ?? 'createdAt',
-            sortDirection: query?.sortDirection ?? 'desc',
-            searchNameTerm: query.searchNameTerm ? query.searchNameTerm : null,
-        }
-    }
 
     getBlogsQuery = async (query: BlogQueryInputType)
         : Promise<PaginationViewModelType<BlogViewModelType>> => {
-        let payload = this._utilBlogQuery(query);
-        return await this._blogQueryRepo.getBlogsQuery(payload)
+        // let payload = blogQueryPagingDef(query);
+        return await this._blogQueryRepo.getBlogsQuery(query)
     }
 
     getAll = async (): Promise<BlogViewModelType[]> => {

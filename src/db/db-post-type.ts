@@ -1,3 +1,5 @@
+import {SortDirectionsType} from "./db-types";
+
 export type PostSchemaType = {
     id: string // maxLength: 30
     title: string
@@ -14,4 +16,12 @@ export type PostSchemaInputType = {
     content: string, //maxLength: 1000
     blogId: string,
     blogName: string
+}
+
+export type PostQueryInputType = {
+    sortBy: keyof PostSchemaType,
+    sortDirection: SortDirectionsType,
+    pageNumber: number,
+    pageSize: number,
+
 }

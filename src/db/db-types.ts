@@ -1,4 +1,3 @@
-
 export type PaginationViewModelType<T> = {
     pagesCount: number,
     page: number,
@@ -7,5 +6,6 @@ export type PaginationViewModelType<T> = {
     items: T[]
 }
 
+export  type   SortDirectionsType = "asc" | "desc";
 
 

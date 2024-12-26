@@ -1,3 +1,5 @@
+import {SortDirectionsType} from "./db-types";
+
 export type BlogSchemaType = {
     id: string
     name: string // max 15
@@ -17,7 +19,7 @@ export type BlogSchemaInputType = {
 export type BlogQueryInputType = {
     searchNameTerm: string | null,
     sortBy: keyof BlogSchemaType,
-    sortDirection: "asc" | "desc",
+    sortDirection: SortDirectionsType,
     pageNumber: number,
     pageSize: number,
 

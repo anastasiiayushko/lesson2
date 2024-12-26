@@ -2,21 +2,18 @@ import {Request, Response} from "express";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {StatusCode} from "../../../types/status-code-types";
 import {PostService} from "../postService";
+import {PaginationViewModelType} from "../../../db/db-types";
+import {PostQueryInputType, PostSchemaType} from "../../../db/db-post-type";
+import {postQueryPagingDef} from "../helpers/postQueryPagingDef";
 
 export class PostController {
     private _postService = new PostService();
 
-    // _mapperBodyPost = (body: PostInputModel): PostInputModel => {
-    //     return {
-    //         title: body.title,
-    //         shortDescription: body.shortDescription,
-    //         content: body.content,
-    //         blogId: body.blogId,
-    //     }
-    // }
 
-    getPosts = async (req: Request, res: Response<PostViewModel[]>) => {
-        let posts = await this._postService.getAll();
+    getPosts = async (req: Request<{}, {}, {}, PostQueryInputType>,
+                      res: Response<PaginationViewModelType<PostSchemaType>>) => {
+        let query = postQueryPagingDef(req.query);
+        let posts = await this._postService.getAll(query);
         res.status(StatusCode.OK_200).json(posts);
     }
 
@@ -45,10 +42,7 @@ export class PostController {
                         res: Response) => {
         let postId = req.params.id;
         let body = req.body;
-
-
         let isUpdatedPost = await this._postService.updatePostById(postId, req.body);
-
         if (!isUpdatedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;

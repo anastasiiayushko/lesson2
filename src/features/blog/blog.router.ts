@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import {blogValidate} from "./middlewares/blogValidate";
+import {blogQueryValidate, blogValidate} from "./middlewares/blogValidate";
 import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware";
 import {adminAuthMiddleware} from "../../middlewares/adminAuthMiddleware";
 import {BlogController} from "./controllers/blogController";
@@ -10,7 +10,7 @@ export const blogRouter = Router();
 
 const blogController = new BlogController();
 
-blogRouter.get('/', blogController.getBlogsWithPaging);
+blogRouter.get('/', ...blogQueryValidate, validateInputMiddleware, blogController.getBlogsWithPaging);
 blogRouter.get('/:id', blogController.getBlogById);
 
 /** protected points */

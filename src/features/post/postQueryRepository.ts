@@ -1,29 +1,25 @@
-import {blogCollection} from "../../db/db";
+import {postCollection} from "../../db/db";
 import {PaginationViewModelType} from "../../db/db-types";
-import {BlogQueryInputType, BlogSchemaType} from "../../db/db-blog-type";
+import {PostQueryInputType, PostSchemaType} from "../../db/db-post-type";
 
-export class BlogQueryRepository {
+export class PostQueryRepository {
 
-    getBlogsQuery = async (query: BlogQueryInputType)
-        : Promise<PaginationViewModelType<BlogSchemaType>> => {
-        let filter = {};
-        if (query.searchNameTerm) {
-            filter = {name: {$regex: query.searchNameTerm, $options: "i"}};
-        }
+    getPostQuery = async (query: PostQueryInputType)
+        : Promise<PaginationViewModelType<PostSchemaType>> => {
         let sortBy = query.sortBy as string;
         let sortingDirection = query.sortDirection;
         let limit = +query.pageSize;
         let page = +query.pageNumber;
         let skip: number = (page - 1) * limit;
 
-        let items = await blogCollection.find(filter)
+        let items = await postCollection.find({})
             .sort({[sortBy]: sortingDirection})
             .skip(skip)
             .limit(limit)
             .toArray();
 
         // Подсчёт общего количества документов
-        let totalCount = await blogCollection.countDocuments(filter);
+        let totalCount = await postCollection.countDocuments({});
         let pagesCount = Math.ceil(totalCount / limit);
 
         return {
