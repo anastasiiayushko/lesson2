@@ -5,7 +5,7 @@ import {PostInputModel, PostViewModel} from "../../types/input-output-types/post
 import {BlogViewModelType} from "../../types/input-output-types/blog-types";
 import {PostQueryInputType, PostSchemaInputType} from "../../db/db-post-type";
 import {PostQueryRepository} from "./postQueryRepository";
-import {PaginationViewModelType} from "../../db/db-types";
+import {FilterType, PaginationViewModelType} from "../../db/db-types";
 
 
 export class PostService {
@@ -20,9 +20,9 @@ export class PostService {
             blogId: body.blogId,
         }
     }
-    getAll = async (query: PostQueryInputType):
-        Promise<PaginationViewModelType<PostViewModel>> => {
-        return await this._postQueryRepo.getPostQuery(query);
+    getPostsWithPaging = async (query: PostQueryInputType,
+                    filter?: FilterType<PostViewModel> | undefined): Promise<PaginationViewModelType<PostViewModel>> => {
+        return await this._postQueryRepo.getPostQuery(query, filter);
     }
 
     getById = async (id: string): Promise<PostViewModel | null> => {

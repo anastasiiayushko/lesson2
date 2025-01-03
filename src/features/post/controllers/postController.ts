@@ -10,11 +10,11 @@ export class PostController {
     private _postService = new PostService();
 
 
-    getPosts = async (req: Request<{}, {}, {}, PostQueryInputType>,
+    getPosts = async (req: Request<{}, {}, {}, {}>,
                       res: Response<PaginationViewModelType<PostSchemaType>>) => {
-        let query = postQueryPagingDef(req.query);
-        console.log(req.query)
-        let posts = await this._postService.getAll(query);
+        let query: PostQueryInputType = req.query as PostQueryInputType;
+        let queryDef = postQueryPagingDef(query);
+        let posts = await this._postService.getPostsWithPaging(queryDef);
         res.status(StatusCode.OK_200).json(posts);
     }
 

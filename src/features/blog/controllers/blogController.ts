@@ -7,6 +7,8 @@ import {PostInputModel, PostViewModel} from "../../../types/input-output-types/p
 import {BlogQueryInputType} from "../../../db/db-blog-type";
 import {PaginationViewModelType} from "../../../db/db-types";
 import {blogQueryPagingDef} from "../helpers/blogQueryPagingDef";
+import {PostQueryInputType} from "../../../db/db-post-type";
+import {postQueryPagingDef} from "../../post/helpers/postQueryPagingDef";
 
 
 export class BlogController {
@@ -14,20 +16,29 @@ export class BlogController {
     private _postService = new PostService()
 
     getBlogsWithPaging =
-        async (req: Request<{}, {}, {}, BlogQueryInputType>,
+        async (req: Request<{}, {}, {}, {}>,
                res: Response<PaginationViewModelType<BlogViewModelType>>
         ) => {
-            let query = blogQueryPagingDef(req.query);
-            let blogs = await this._blogService.getBlogsQuery(query);
+            const query: BlogQueryInputType = req.query as BlogQueryInputType;
+            let queryDef = blogQueryPagingDef(query);
+            let blogs = await this._blogService.getBlogsQuery(queryDef);
             res.status(StatusCode.OK_200).json(blogs)
         }
-    getBlogs = async (req: Request,
-                      res: Response<BlogViewModelType[]>) => {
 
-        let blogs = await this._blogService.getAll();
-        res.status(StatusCode.OK_200).json(blogs)
-
+    getPostsByBlogIdWithPaging = async (req: Request<{ blogId: string }, {}, {}, {}>,
+                                        res: Response<PaginationViewModelType<PostViewModel>>) => {
+        let blogId = req.params.blogId as string;
+        let blog = await this._blogService.getById(blogId);
+        if (!blog) {
+            res.sendStatus(StatusCode.NOT_FOUND_404);
+            return;
+        }
+        let query: PostQueryInputType = req.query as PostQueryInputType;
+        let queryDef = postQueryPagingDef(query);
+        let posts = await this._postService.getPostsWithPaging(queryDef, {blogId: blogId});
+        res.status(StatusCode.OK_200).json(posts)
     }
+
     getBlogById = async (req: Request<{ id: string }>,
                          res: Response<BlogViewModelType>) => {
         let id = req.params.id;
@@ -38,6 +49,7 @@ export class BlogController {
         }
         res.status(StatusCode.OK_200).json(blog);
     }
+
 
     createPostForSpecificBlog = async (req: Request<{
         blogId: string
@@ -52,6 +64,7 @@ export class BlogController {
         res.status(StatusCode.CREATED_201).json(createdPost);
 
     }
+
     createBlog =
         async (req: Request<{}, {}, BlogInputModelType>,
                res: Response<BlogViewModelType>) => {
@@ -60,6 +73,7 @@ export class BlogController {
             res.status(StatusCode.CREATED_201).json(createBlog);
 
         }
+
 
     updateBlogById =
         async (req: Request<{ id: string }, {}, BlogInputModelType>,

@@ -16,7 +16,16 @@ export class BlogQueryRepository {
         let page = +query.pageNumber;
         let skip: number = (page - 1) * limit;
 
-        let items = await blogCollection.find(filter)
+        let items = await blogCollection.find(filter, {
+            projection: {
+                _id: 0,
+                // id: 1,
+                // name: 1,
+                // description: 1,
+                // websiteUrl: 1,
+                // createdAt: 1
+            }
+        })
             .sort({[sortBy]: sortingDirection})
             .skip(skip)
             .limit(limit)
@@ -27,11 +36,11 @@ export class BlogQueryRepository {
         let pagesCount = Math.ceil(totalCount / limit);
 
         return {
-            items: items,
-            pageSize: limit,
             pagesCount: pagesCount,
+            page: page,
+            pageSize: limit,
             totalCount: totalCount,
-            page: page
+            items: items
         }
 
     }
