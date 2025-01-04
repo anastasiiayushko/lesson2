@@ -1,5 +1,5 @@
 import {body} from 'express-validator';
-import {BlogRepository} from "../../blog/blogRepository";
+import {BlogRepository} from "../../blog/dal/blogRepository";
 
 const blogRepository = new BlogRepository();
 

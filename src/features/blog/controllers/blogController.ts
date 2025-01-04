@@ -2,18 +2,22 @@ import {Request, Response} from "express";
 import {BlogInputModelType, BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {StatusCode} from "../../../types/status-code-types";
 import {BlogService} from "../blogService";
-import {PostService} from "../../post/postService";
+import {PostService} from "../../post/service/postService";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {BlogQueryInputType} from "../../../db/db-blog-type";
-import {PaginationViewModelType} from "../../../db/db-types";
 import {blogQueryPagingDef} from "../helpers/blogQueryPagingDef";
 import {PostQueryInputType} from "../../../db/db-post-type";
 import {postQueryPagingDef} from "../../post/helpers/postQueryPagingDef";
+import {BlogQueryRepository} from "../dal/blogQueryRepository";
+import {PostQueryRepository} from "../../post/dal/postQueryRepository";
+import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
 
 export class BlogController {
     private _blogService = new BlogService()
-    private _postService = new PostService()
+    private _postService = new PostService();
+    private _blogQueryRepo = new BlogQueryRepository();
+    private _postQueryRepo = new PostQueryRepository();
 
     getBlogsWithPaging =
         async (req: Request<{}, {}, {}, {}>,
@@ -21,7 +25,7 @@ export class BlogController {
         ) => {
             const query: BlogQueryInputType = req.query as BlogQueryInputType;
             let queryDef = blogQueryPagingDef(query);
-            let blogs = await this._blogService.getBlogsQuery(queryDef);
+            let blogs = await this._blogQueryRepo.getBlogsQuery(queryDef);
             res.status(StatusCode.OK_200).json(blogs)
         }
 
@@ -35,14 +39,15 @@ export class BlogController {
         }
         let query: PostQueryInputType = req.query as PostQueryInputType;
         let queryDef = postQueryPagingDef(query);
-        let posts = await this._postService.getPostsWithPaging(queryDef, {blogId: blogId});
+        let posts = await this._postQueryRepo.getPostQuery(queryDef, blogId);
         res.status(StatusCode.OK_200).json(posts)
     }
 
     getBlogById = async (req: Request<{ id: string }>,
                          res: Response<BlogViewModelType>) => {
         let id = req.params.id;
-        let blog = await this._blogService.getById(id);
+        let blog = await this._blogQueryRepo.getById(id);
+
         if (!blog) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
@@ -56,12 +61,13 @@ export class BlogController {
     }, {}, PostInputModel>, res: Response<PostViewModel>) => {
         let blogId = req.params.blogId;
         let body = {...req.body, blogId: blogId};
-        let createdPost = await this._postService.createPost(body);
-        if (!createdPost) {
+        let postId = await this._postService.createPost(body);
+        if (!postId) {
             res.sendStatus(StatusCode.NOT_FOUND_404)
             return
         }
-        res.status(StatusCode.CREATED_201).json(createdPost);
+        let post = await this._postQueryRepo.getById(postId);
+        res.status(StatusCode.CREATED_201).json(post!);
 
     }
 
@@ -69,8 +75,17 @@ export class BlogController {
         async (req: Request<{}, {}, BlogInputModelType>,
                res: Response<BlogViewModelType>) => {
 
-            let createBlog = await this._blogService.createBlog(req.body);
-            res.status(StatusCode.CREATED_201).json(createBlog);
+            let blogId = await this._blogService.createBlog(req.body);
+            if (!blogId) {
+                res.sendStatus(StatusCode.NOT_FOUND_404)
+                return
+            }
+            let blog = await this._blogQueryRepo.getById(blogId);
+            if (!blog) {
+                res.sendStatus(StatusCode.NOT_FOUND_404)
+                return
+            }
+            res.status(StatusCode.CREATED_201).json(blog);
 
         }
 
@@ -91,7 +106,7 @@ export class BlogController {
                             res: Response) => {
         let id = req.params.id;
         let isRemovedBlog = await this._blogService.deleteDyId(id);
-        console.log(isRemovedBlog);
+
         if (isRemovedBlog) {
             res.sendStatus(StatusCode.NO_CONTENT_204);
             return

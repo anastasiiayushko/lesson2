@@ -3,8 +3,14 @@ import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {StatusCode} from "../src/types/status-code-types";
 import {BLOG_INPUT_VALID} from "./helpers/testData";
-import {createBlogTest, generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData} from "./helpers/testUtils";
+import {
+    createBlogTest,
+    generateRandomStringForTest,
+    getAuthHeaderBasicTest, getBlogWithPaging,
+    resetTestData
+} from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
+import {ObjectId} from "mongodb";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
@@ -19,7 +25,9 @@ const createBlog = async (blogData: BlogInputModelType | {} = BLOG_INPUT_VALID, 
     return await createBlogTest(app, blogData, basicAuth)
 };
 
-
+const RESPONSE_DATA_WITH_PAGING = (items = []) => {
+    return {pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: items}
+}
 
 describe("BLOG CREATE PROTECTED", () => {
 
@@ -33,24 +41,24 @@ describe("BLOG CREATE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicInvalid})
             .expect(StatusCode.UNAUTHORIZED_401)
 
-        await request(app)
-            .get(PATH_BLOG)
-            .expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create blog incorrect empty data, should be errorsMessage and status 400", async () => {
-        let res = await createBlog({});
+        let blogRes = await createBlog({});
 
-        expect(res.body).toMatchObject({
+        expect(blogRes.body).toMatchObject({
             errorsMessages: expect.arrayContaining([
                 expect.objectContaining({message: expect.any(String), field: "name"}),
                 expect.objectContaining({message: expect.any(String), field: "description"}),
                 expect.objectContaining({message: expect.any(String), field: "websiteUrl"})
             ])
         });
-        expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
+        expect(blogRes.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
 
     });
     it("Create incorrect field name empty, should be errorsMessage and status 400", async () => {
@@ -64,7 +72,8 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create incorrect field name more than maxLen 15, should be errorsMessage and status 400", async () => {
@@ -79,7 +88,8 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create data incorrect field description more then maxLen 500, should be errorsMessage and status 400", async () => {
@@ -95,9 +105,8 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app)
-            .get(PATH_BLOG)
-            .expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create data incorrect field description empty, should be errorsMessage and status 400", async () => {
@@ -112,9 +121,8 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app)
-            .get(PATH_BLOG)
-            .expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create data incorrect field websiteUrl empty, should be errorsMessage and status 400", async () => {
@@ -129,9 +137,8 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        await request(app)
-            .get(PATH_BLOG)
-            .expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
     it("Create data incorrect field websiteUrl, should be errorsMessage and status 400", async () => {
@@ -146,7 +153,8 @@ describe("BLOG CREATE PROTECTED", () => {
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
 
@@ -204,8 +212,9 @@ describe("BLOG UPDATE PROTECTED", () => {
     });
 
     it("Update blog not exist id. should be status 404", async () => {
+        let _id = new ObjectId();
         await request(app)
-            .put(`${PATH_BLOG}/1`)
+            .put(`${PATH_BLOG}/${_id.toString()}`)
             .set({'Authorization': authHeaderBasicValid})
             .send(BLOG_INPUT_VALID)
             .expect(StatusCode.NOT_FOUND_404)
@@ -287,14 +296,15 @@ describe("BLOG DELETE PROTECTED", () => {
 
     it("Delete blog not existing id. should be status 404", async () => {
         await createBlog(BLOG_INPUT_VALID);
-
+        let _id = new ObjectId();
         await request(app)
-            .delete(`${PATH_BLOG}/8k88k1374467755`)
+            .delete(`${PATH_BLOG}/${_id.toString()}`)
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NOT_FOUND_404);
 
-        let blogResponse = await request(app).get(PATH_BLOG).expect(StatusCode.OK_200)
-        expect(blogResponse.body.length).toEqual(1)
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body.items.length).toEqual(1)
+
     });
 
     it("Delete blog by id. should be status 204", async () => {
@@ -310,7 +320,8 @@ describe("BLOG DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NO_CONTENT_204)
 
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 });
 
@@ -323,18 +334,14 @@ describe("BLOG PUBLIC", () => {
     });
 
     it("Get a list blogs in empty collection. Should be status 200 and []", async () => {
-        await request(app).get(PATH_BLOG).expect(StatusCode.OK_200, [])
+        let resGet = await getBlogWithPaging(app);
+        expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
     it("Get a blog using a non-existent id from an empty collection", async () => {
-        await request(app).get(PATH_BLOG + "/" + "12345").expect(StatusCode.NOT_FOUND_404)
+        let _id = new ObjectId();
+        await request(app).get(PATH_BLOG + "/" + _id.toString()).expect(StatusCode.NOT_FOUND_404)
     });
-    it("Get a list blogs in not empty collection. Should be status 200", async () => {
-        await createBlog(BLOG_INPUT_VALID);
-        let res = await request(app)
-            .get(PATH_BLOG)
-            .expect(StatusCode.OK_200);
-        expect(res.body.length).toBe(1)
-    });
+
     it("Get blog by existing id. should be status 200 and resource", async () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
         expect(createdResponse.status).toBe(StatusCode.CREATED_201);
@@ -343,6 +350,5 @@ describe("BLOG PUBLIC", () => {
         await request(app)
             .get(PATH_BLOG + "/" + blogId)
             .expect(StatusCode.OK_200, blog);
-
     });
 });

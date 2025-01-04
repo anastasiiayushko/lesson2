@@ -9,7 +9,7 @@ export const postRouter = Router();
 
 const postController = new PostController();
 
-postRouter.get('/', ...postQueryValidate, validateInputMiddleware, postController.getPosts);
+postRouter.get('/', ...postQueryValidate, validateInputMiddleware, postController.getPostsWithPaging);
 postRouter.get('/:id', postController.getPost);
 
 //protected

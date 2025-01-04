@@ -4,6 +4,7 @@ import {StatusCode} from "../../src/types/status-code-types";
 import {SETTINGS} from "../../src/settings";
 import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID} from "./testData";
+import {app} from "../../src/app";
 
 
 export const resetTestData = async (app: Express) => {
@@ -35,3 +36,11 @@ export const createBlogTest = async (
         .send(blogData);
     return response;
 };
+
+export const getBlogWithPaging = async (app: Express) => {
+    const res = await request(app)
+        .get(SETTINGS.PATH.BLOGS)
+        .expect(StatusCode.OK_200);
+
+    return res;
+}

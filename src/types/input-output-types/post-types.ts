@@ -1,6 +1,3 @@
-import {PostSchemaInputType, PostSchemaType} from "../../db/db-post-type";
-
-
 export type PostViewModel = {
     id: string // maxLength: 30
     title: string

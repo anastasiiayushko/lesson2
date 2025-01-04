@@ -1,14 +1,9 @@
-import {generateDbId} from "../../db/generateDbId";
-import {BlogRepository} from "./blogRepository";
+import {BlogRepository} from "./dal/blogRepository";
 import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-types/blog-types";
-import {BlogQueryInputType} from "../../db/db-blog-type";
-import {PaginationViewModelType} from "../../db/db-types";
-import {BlogQueryRepository} from "./blogQueryRepository";
 
 
 export class BlogService {
     private _blogRepo = new BlogRepository()
-    private _blogQueryRepo = new BlogQueryRepository()
 
     _mapperBodyBlog = (body: BlogInputModelType): BlogInputModelType => {
         return {
@@ -18,25 +13,15 @@ export class BlogService {
         }
     }
 
-    getBlogsQuery = async (query: BlogQueryInputType)
-        : Promise<PaginationViewModelType<BlogViewModelType>> => {
-        // let payload = blogQueryPagingDef(query);
-        return await this._blogQueryRepo.getBlogsQuery(query)
-    }
-
-    getAll = async (): Promise<BlogViewModelType[]> => {
-        return await this._blogRepo.getAll();
-    }
     getById = async (id: string): Promise<BlogViewModelType | null> => {
         return await this._blogRepo.getById(id);
     }
 
-    createBlog = async (body: BlogInputModelType): Promise<BlogViewModelType> => {
-        let id: string = generateDbId();
-        let bodyBlog = this._mapperBodyBlog(body)
+    createBlog = async (body: BlogInputModelType): Promise<string> => {
         let createBlog = {
-            ...bodyBlog,
-            id: id,
+            name: body.name,
+            description: body.description,
+            websiteUrl: body.websiteUrl,
             createdAt: new Date().toISOString(),
             isMembership: false,
         }

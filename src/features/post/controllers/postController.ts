@@ -1,26 +1,28 @@
 import {Request, Response} from "express";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {StatusCode} from "../../../types/status-code-types";
-import {PostService} from "../postService";
-import {PaginationViewModelType} from "../../../db/db-types";
-import {PostQueryInputType, PostSchemaType} from "../../../db/db-post-type";
+import {PostService} from "../service/postService";
+import {PostQueryInputType} from "../../../db/db-post-type";
 import {postQueryPagingDef} from "../helpers/postQueryPagingDef";
+import {PostQueryRepository} from "../dal/postQueryRepository";
+import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
 export class PostController {
     private _postService = new PostService();
+    private _postQueryRepo = new PostQueryRepository();
 
 
-    getPosts = async (req: Request<{}, {}, {}, {}>,
-                      res: Response<PaginationViewModelType<PostSchemaType>>) => {
+    getPostsWithPaging = async (req: Request<{}, {}, {}, {}>,
+                                res: Response<PaginationViewModelType<PostViewModel>>) => {
         let query: PostQueryInputType = req.query as PostQueryInputType;
         let queryDef = postQueryPagingDef(query);
-        let posts = await this._postService.getPostsWithPaging(queryDef);
-        res.status(StatusCode.OK_200).json(posts);
+        let postsPaging = await this._postQueryRepo.getPostQuery(queryDef, undefined);
+        res.status(StatusCode.OK_200).json(postsPaging);
     }
 
     getPost = async (req: Request<{ id: string }>, res: Response<PostViewModel>) => {
         let id = req.params.id;
-        let post = await this._postService.getById(id);
+        let post = await this._postQueryRepo.getById(id);
         if (!post) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
@@ -31,18 +33,18 @@ export class PostController {
     createPost = async (req: Request<{}, {}, PostInputModel>,
                         res: Response<PostViewModel>) => {
 
-        let createdPost = await this._postService.createPost(req.body);
-        if (!createdPost) {
+        let postId = await this._postService.createPost(req.body);
+        if (!postId) {
             res.sendStatus(StatusCode.NOT_FOUND_404)
             return
         }
-        res.status(StatusCode.CREATED_201).json(createdPost);
+        let post = await this._postQueryRepo.getById(postId);
+        res.status(StatusCode.CREATED_201).json(post!);
     }
 
     updatePost = async (req: Request<{ id: string }, {}, PostInputModel>,
                         res: Response) => {
         let postId = req.params.id;
-        let body = req.body;
         let isUpdatedPost = await this._postService.updatePostById(postId, req.body);
         if (!isUpdatedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
