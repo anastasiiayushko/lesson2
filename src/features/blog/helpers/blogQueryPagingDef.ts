@@ -1,4 +1,4 @@
-import {BlogQueryInputType} from "../../../db/db-blog-type";
+import {BlogQueryInputType} from "../../../db/types/db-blog-type";
 
 export const blogQueryPagingDef = (query: BlogQueryInputType): BlogQueryInputType => {
 

@@ -1,6 +1,6 @@
 import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
 import {PostInputModel} from "../../src/types/input-output-types/post-types";
-import {generateRandomStringForTest} from "./testUtils";
+
 
 export const BLOG_INPUT_VALID: BlogInputModelType = {
     name: "string",

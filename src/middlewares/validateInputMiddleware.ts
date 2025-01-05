@@ -3,7 +3,6 @@ import {validationResult} from 'express-validator';
 import {StatusCode} from "../types/status-code-types";
 import {ApiErrorResultType, ErrorFieldType} from "../types/output-error-types";
 
-// const ma
 
 export const validateInputMiddleware = (req: Request, res: Response<ApiErrorResultType>, next: NextFunction) => {
     const validateErrors = validationResult(req);

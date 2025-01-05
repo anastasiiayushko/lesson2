@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {StatusCode} from "../../../types/status-code-types";
 import {PostService} from "../service/postService";
-import {PostQueryInputType} from "../../../db/db-post-type";
+import {PostQueryInputType} from "../../../db/types/db-post-type";
 import {postQueryPagingDef} from "../helpers/postQueryPagingDef";
 import {PostQueryRepository} from "../dal/postQueryRepository";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";

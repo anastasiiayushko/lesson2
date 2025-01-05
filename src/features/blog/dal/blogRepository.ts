@@ -1,5 +1,5 @@
 import {blogCollection} from "../../../db/db";
-import {BlogCreateSchemaType, BlogSchemaInputType, BlogSchemaType} from "../../../db/db-blog-type";
+import {BlogCreateSchemaType, BlogSchemaInputType, BlogSchemaType} from "../../../db/types/db-blog-type";
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {ObjectId} from "mongodb";
 

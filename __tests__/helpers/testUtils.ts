@@ -4,7 +4,9 @@ import {StatusCode} from "../../src/types/status-code-types";
 import {SETTINGS} from "../../src/settings";
 import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID} from "./testData";
-import {app} from "../../src/app";
+import {BlogQueryInputType} from "../../src/db/types/db-blog-type";
+import {FilterType, SortDirectionsType} from "../../src/db/types/db-types";
+import {PostQueryInputType} from "../../src/db/types/db-post-type";
 
 
 export const resetTestData = async (app: Express) => {
@@ -37,10 +39,37 @@ export const createBlogTest = async (
     return response;
 };
 
-export const getBlogWithPaging = async (app: Express) => {
+
+type BLOG_QUERY_TESTING = FilterType<BlogQueryInputType>
+
+export const getPagingBlogQuery = async (app: Express, query?: BLOG_QUERY_TESTING) => {
+    let _query = query ? query : {};
+
     const res = await request(app)
         .get(SETTINGS.PATH.BLOGS)
+        .query(_query)
         .expect(StatusCode.OK_200);
 
     return res;
+}
+type POST_QUERY_TESTING = FilterType<PostQueryInputType>
+export const getPagingPostQuery = async (app: Express, query?: POST_QUERY_TESTING) => {
+    let _query = query ? query : {};
+    const res = await request(app)
+        .get(SETTINGS.PATH.POSTS)
+        .query(_query)
+        .expect(StatusCode.OK_200);
+
+    return res;
+}
+
+export const sortedBySortKeyAndDirectionTest = <T>(data: T[], sortBy: keyof T, direction: SortDirectionsType) => {
+    return data.sort((a, b) => {
+        const valueA = String(a[sortBy]).toLowerCase(); // Приводим к строке и в нижний регистр
+        const valueB = String(b[sortBy]).toLowerCase();
+
+        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
 }

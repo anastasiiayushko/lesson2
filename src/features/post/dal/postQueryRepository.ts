@@ -1,11 +1,9 @@
 import {postCollection} from "../../../db/db";
-import {FilterType} from "../../../db/db-types";
-import {PostQueryInputType, PostSchemaType} from "../../../db/db-post-type";
+import {PostQueryInputType, PostSchemaType} from "../../../db/types/db-post-type";
 import {PostViewModel} from "../../../types/input-output-types/post-types";
 import {ObjectId} from "mongodb";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
-type PostFilterType = FilterType<PostViewModel>
 
 export class PostQueryRepository {
     _mapperPostViewModel = (item: PostSchemaType): PostViewModel => {

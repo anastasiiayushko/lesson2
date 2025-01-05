@@ -6,11 +6,12 @@ import {BLOG_INPUT_VALID} from "./helpers/testData";
 import {
     createBlogTest,
     generateRandomStringForTest,
-    getAuthHeaderBasicTest, getBlogWithPaging,
-    resetTestData
+    getAuthHeaderBasicTest, getPagingBlogQuery,
+    resetTestData, sortedBySortKeyAndDirectionTest
 } from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 import {ObjectId} from "mongodb";
+import {blogDataTest} from "../src/features/test/blogData";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
@@ -41,7 +42,7 @@ describe("BLOG CREATE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicInvalid})
             .expect(StatusCode.UNAUTHORIZED_401)
 
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -57,7 +58,7 @@ describe("BLOG CREATE PROTECTED", () => {
         });
         expect(blogRes.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
 
     });
@@ -72,7 +73,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -88,7 +89,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ]
         })
         expect(res.status).toBe(StatusCode.BAD_REQUEST_400);
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -105,7 +106,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -121,7 +122,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -137,7 +138,7 @@ describe("BLOG CREATE PROTECTED", () => {
             ])
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -153,7 +154,7 @@ describe("BLOG CREATE PROTECTED", () => {
         })
         expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
 
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 
@@ -302,7 +303,7 @@ describe("BLOG DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NOT_FOUND_404);
 
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body.items.length).toEqual(1)
 
     });
@@ -320,7 +321,7 @@ describe("BLOG DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NO_CONTENT_204)
 
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 });
@@ -334,7 +335,7 @@ describe("BLOG PUBLIC", () => {
     });
 
     it("Get a list blogs in empty collection. Should be status 200 and []", async () => {
-        let resGet = await getBlogWithPaging(app);
+        let resGet = await getPagingBlogQuery(app);
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
     it("Get a blog using a non-existent id from an empty collection", async () => {
@@ -351,4 +352,111 @@ describe("BLOG PUBLIC", () => {
             .get(PATH_BLOG + "/" + blogId)
             .expect(StatusCode.OK_200, blog);
     });
+});
+
+let BLOGS_INSERT_PAGING_QUERY = blogDataTest;
+describe("BLOG WITH PAGINATION AND QUERY", () => {
+
+    beforeAll(async () => {
+        await resetTestData(app);
+        await request(app).post(SETTINGS.PATH.TESTING + "/blogs/insert").send(BLOGS_INSERT_PAGING_QUERY);
+    });
+
+    it("Should be returns blog paging is default query params ", async () => {
+        let totalDocuments = BLOGS_INSERT_PAGING_QUERY.length;
+        let defaultPageSize = 10;
+        let expectedPagesCount = Math.ceil(totalDocuments / defaultPageSize);
+
+        let res = await getPagingBlogQuery(app);
+        let body = res.body;
+
+        expect(body.totalCount).toBe(totalDocuments);
+        expect(body.page).toBe(1);
+        expect(body.pageSize).toBe(defaultPageSize);
+        expect(body.pagesCount).toBe(expectedPagesCount);
+        expect(body.items.length).toBe(defaultPageSize);
+        expect(res.statusCode).toBe(StatusCode.OK_200);
+    })
+    it("Blog use navigate page. Should be returns  paging blogs. Page size 4", async () => {
+
+        let pageSize: number = 4;
+        let totalDocuments = +BLOGS_INSERT_PAGING_QUERY.length;
+        let expectedPagesCount = Math.ceil(totalDocuments / pageSize);
+        const lastPageItemsCount = totalDocuments % pageSize || pageSize;
+
+        let resPage1 = await getPagingBlogQuery(app, {pageSize: pageSize});
+        let body = resPage1.body;
+
+        expect(body.totalCount).toBe(totalDocuments);
+        expect(body.page).toBe(1);
+        expect(body.pageSize).toBe(pageSize);
+        expect(body.pagesCount).toBe(expectedPagesCount);
+        expect(body.items.length).toBe(pageSize);
+        expect(resPage1.statusCode).toBe(StatusCode.OK_200);
+
+        let resPage2 = await getPagingBlogQuery(app, {pageSize: pageSize, pageNumber: 2});
+        expect(resPage2.body.page).toBe(2);
+        expect(resPage2.body.items.length).toBe(pageSize);
+
+        let resPage3 = await getPagingBlogQuery(app, {pageSize: pageSize, pageNumber: 3});
+        expect(resPage3.body.page).toBe(3);
+        expect(resPage3.body.items.length).toBe(lastPageItemsCount);
+
+        // Проверяем, что запрос с превышающим номером страницы возвращает пустой массив
+        const resPageOutOfBounds = await getPagingBlogQuery(app, {pageSize, pageNumber: expectedPagesCount + 1});
+        expect(resPageOutOfBounds.body.page).toBe(expectedPagesCount + 1);
+        expect(resPageOutOfBounds.body.items.length).toBe(0);
+    });
+
+    it("Should returns blogs filtered by searchNameTerm = DavidWalsh", async () => {
+        const filterName = "DavidWalsh";
+        let expectedTotalDocumentsByTerm = BLOGS_INSERT_PAGING_QUERY.filter(e => {
+            return e.name.includes(filterName);
+        });
+        let res = await getPagingBlogQuery(app, {searchNameTerm: filterName});
+        expect(res.body.totalCount).toBe(expectedTotalDocumentsByTerm.length);
+    });
+
+    it("Should return empty result if no blogs match the filter", async () => {
+        const filterName = generateRandomStringForTest(10);
+
+        const res = await getPagingBlogQuery(app, {searchNameTerm: filterName});
+        const body = res.body;
+
+        expect(res.statusCode).toBe(StatusCode.OK_200);
+
+        expect(body.totalCount).toBe(0);
+        expect(body.items.length).toBe(0);
+    });
+
+
+});
+
+
+let BLOGS_INSERT_SORTING = blogDataTest;
+describe("BLOG SORTING ", () => {
+    beforeAll(async () => {
+        await resetTestData(app);
+        await request(app)
+            .post(SETTINGS.PATH.TESTING + "/blogs/insert")
+            .send(BLOGS_INSERT_SORTING);
+    });
+
+    it("Should sort blogs by name and direction asc", async () => {
+        let pageSize = 10;
+        const res = await getPagingBlogQuery(app, {sortBy: "name", sortDirection: "asc", pageSize: pageSize});
+        const body = res.body;
+
+        // Проверяем статус ответа
+        expect(res.statusCode).toBe(StatusCode.OK_200);
+
+        let sortedMock = sortedBySortKeyAndDirectionTest(BLOGS_INSERT_SORTING, "name", "asc")
+        let receivedSortedName = sortedMock.slice(0, pageSize).map(e => e.name)
+
+        const expectedSortedNames = body.items.map((item: any) => item.name);
+
+        // Проверяем порядок элементов
+        expect(expectedSortedNames).toEqual(receivedSortedName);
+    });
+
 });

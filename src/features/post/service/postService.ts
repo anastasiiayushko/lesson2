@@ -2,7 +2,7 @@ import {PostRepository} from "../dal/postRepository";
 import {BlogRepository} from "../../blog/dal/blogRepository";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
-import {PostSchemaInputType} from "../../../db/db-post-type";
+import {PostSchemaInputType} from "../../../db/types/db-post-type";
 import {PostQueryRepository} from "../dal/postQueryRepository";
 
 

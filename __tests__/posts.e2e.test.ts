@@ -1,11 +1,18 @@
 import request from "supertest";
 import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
-import {createBlogTest, generateRandomStringForTest, getAuthHeaderBasicTest, resetTestData} from "./helpers/testUtils";
+import {
+    createBlogTest,
+    generateRandomStringForTest,
+    getAuthHeaderBasicTest, getPagingBlogQuery,
+    getPagingPostQuery,
+    resetTestData
+} from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID, POST_INPUT_VALID_WITHOUT_BLOG_ID} from "./helpers/testData";
 import {StatusCode} from "../src/types/status-code-types";
-import {PostInputModel} from "../src/types/input-output-types/post-types";
+import {PostInputModel, PostViewModel} from "../src/types/input-output-types/post-types";
+import {ObjectId} from "mongodb";
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
 let PATH_POST = SETTINGS.PATH.POSTS;
@@ -33,11 +40,15 @@ describe("POST CREATE PROTECTED", () => {
         let blogCreateResponse = await createBlog();
         expect(blogCreateResponse.status).toBe(StatusCode.CREATED_201);
 
-        let res = await createPost(POST_INPUT_VALID_WITHOUT_BLOG_ID, authHeaderBasicInvalid)
+        let res = await createPost({
+            ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
+            blogId: blogCreateResponse.body.id,
+        }, authHeaderBasicInvalid)
 
         expect(res.status).toBe(StatusCode.UNAUTHORIZED_401);
 
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
 
     });
 
@@ -96,11 +107,11 @@ describe("POST CREATE PROTECTED", () => {
 
     it("Should be 400, send blogId existing blog", async () => {
         let blogResponse = await createBlog();
-
+        let blogId = new ObjectId();
         let blog = blogResponse.body;
         let passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
-            blogId: blog.id + '12hg34'
+            blogId: blogId.toString()
         }
 
         let response = await createPost(passedPost);
@@ -114,7 +125,8 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, blogId empty", async () => {
         let blogResponse = await createBlog();
@@ -135,8 +147,8 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
 
 
@@ -160,8 +172,8 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, title empty", async () => {
         let blogResponse = await createBlog();
@@ -184,7 +196,8 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
 
     it("Should be 400, shortDescription maxLen more than 100", async () => {
@@ -208,15 +221,16 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, shortDescription empty", async () => {
-        let blogResponse = await createBlog();
+        let blog = await createBlog();
 
-        let blog = blogResponse.body;
+
         let passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
-            blogId: blog.id,
+            blogId: blog.body.id,
             shortDescription: ""
         }
 
@@ -230,8 +244,8 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
 
     it("Should be 400, content maxLen more than 1001", async () => {
@@ -254,8 +268,8 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, content empty", async () => {
         let blogResponse = await createBlog();
@@ -277,8 +291,8 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
 
 
@@ -313,7 +327,8 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
     });
 
 });
@@ -397,8 +412,9 @@ describe("POST UPDATE PROTECTED", () => {
             blogName: blog.name,
             title: generateRandomStringForTest(8)
         }
+        let invalidPostId = new ObjectId()
         await request(app)
-            .put(PATH_POST + '/' + postId + '12233123213')
+            .put(PATH_POST + '/' + invalidPostId)
             .set({'Authorization': authHeaderBasicValid})
             .send(expectPost)
             .expect(StatusCode.NOT_FOUND_404)
@@ -479,8 +495,8 @@ describe("POST DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NO_CONTENT_204)
 
-
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const posts = await getPagingPostQuery(app);
+        expect(posts.body.items.length).toBe(0);
 
     });
 
@@ -497,9 +513,9 @@ describe("POST DELETE PROTECTED", () => {
 
         let res = await createPost(passedPost, authHeaderBasicValid);
         let postId = res.body.id;
-
+        let invalidPostId = new ObjectId()
         await request(app)
-            .delete(PATH_POST + '/' + postId + '12233123213')
+            .delete(PATH_POST + '/' + invalidPostId.toString())
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NOT_FOUND_404)
 
@@ -512,15 +528,82 @@ describe("POST DELETE PROTECTED", () => {
 
 
 describe("POST PUBLIC", () => {
-    beforeEach(async () => {
-        await resetTestData(app)
-    })
+    let blog = null; // Переменная для хранения  созданного блога
+    beforeAll(async () => {
+        await resetTestData(app);
 
-    it("should be empty array and status 200", async () => {
-        await request(app).get(PATH_POST).expect(StatusCode.OK_200, [])
+        const blogResponse = await createBlog(BLOG_INPUT_VALID, authHeaderBasicValid);
+
+        blog = blogResponse.body;
+        expect(blogResponse.statusCode).toBe(StatusCode.CREATED_201);
+        expect(blog.id).toBeDefined();
+
+
+    });
+
+
+    it("Should be returns blog paging is default query params ", async () => {
+
+        const postsData: PostInputModel[] = [
+            {
+                title: "Post 1",
+                content: "Content for Post 1",
+                shortDescription: "Description for Post 1",
+                blogId: blog!.id,
+            },
+            {
+                title: "Post 2",
+                content: "Content for Post 2",
+                shortDescription: "Description for Post 2",
+                blogId: blog!.id,
+            },
+            {
+                title: "Post 3",
+                content: "Content for Post 3",
+                shortDescription: "Description for Post 3",
+                blogId: blog!.id,
+            },
+            {
+                title: "Post 4",
+                content: "Content for Post 4",
+                shortDescription: "Description for Post 4",
+                blogId: blog!.id,
+            },
+            {
+                title: "Post 5",
+                content: "Content for Post 5",
+                shortDescription: "Description for Post 5",
+                blogId: blog!.id,
+            }
+        ];
+
+        for (const postData of postsData) {
+            const postResponse = await createPost(postData, authHeaderBasicValid);
+
+            // Проверка успешного создания поста
+            expect(postResponse.statusCode).toBe(StatusCode.CREATED_201);
+            expect(postResponse.body.blogId).toBe(blog!.id);
+            expect(postResponse.body.title).toBe(postData.title);
+            expect(postResponse.body.content).toBe(postData.content);
+        }
+
+        let totalDocuments = 5;
+        let defaultPageSize = 2;
+        let expectedPagesCount = Math.ceil(totalDocuments / defaultPageSize);
+
+        let res = await getPagingPostQuery(app, {pageSize:defaultPageSize});
+        let body = res.body;
+
+        expect(body.totalCount).toBe(totalDocuments);
+        expect(body.page).toBe(1);
+        expect(body.pageSize).toBe(defaultPageSize);
+        expect(body.pagesCount).toBe(expectedPagesCount);
+        expect(body.items.length).toBe(2);
+        expect(res.statusCode).toBe(StatusCode.OK_200);
     })
 
     it("should be find post empty array and status 404 ", async () => {
-        await request(app).get(PATH_POST + "/" + "-3481237484578245").expect(StatusCode.NOT_FOUND_404)
+        let invalidPostId = new ObjectId()
+        await request(app).get(PATH_POST + "/" + invalidPostId.toString()).expect(StatusCode.NOT_FOUND_404)
     })
 })
