@@ -25,7 +25,8 @@ export const generateRandomStringForTest = (lengthSymbols: number): string => {
 }
 
 
-export const sortedBySortKeyAndDirectionTest = <T>(data: T[], sortBy: keyof T, direction: SortDirectionsType) => {
+export const sortedBySortKeyAndDirectionTest =
+    <T>(data: T[], sortBy: keyof T, direction: SortDirectionsType) => {
     return data.sort((a, b) => {
         const valueA = String(a[sortBy]).toLowerCase(); // Приводим к строке и в нижний регистр
         const valueB = String(b[sortBy]).toLowerCase();

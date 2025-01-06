@@ -11,6 +11,7 @@ import {fetchUsersWithPagingTest} from "./helpers/usersUtils";
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 const BASIC_INVALID_HEADER = getAuthHeaderBasicTest('test:test')
 
+
 describe('User CREATE PROTECTED', () => {
     beforeEach(async () => {
         await resetTestData(app)

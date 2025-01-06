@@ -5,12 +5,8 @@ import {ObjectId} from "mongodb";
 
 
 export class BlogRepository {
-    // private db: BlogSchema[];
 
-    constructor() {
-    }
-
-    _mapperBlog = (item: BlogSchemaType): BlogViewModelType => {
+    _mapDbBlogToView = (item: BlogSchemaType): BlogViewModelType => {
         return {
             id: item._id.toString(),
             name: item.name,
@@ -22,14 +18,15 @@ export class BlogRepository {
     }
     getAll = async (): Promise<BlogViewModelType[]> => {
         let blogs = await blogCollection.find({}).toArray();
-        return blogs.map(this._mapperBlog);
+        return blogs.map(this._mapDbBlogToView);
     }
+
     getById = async (id: string): Promise<BlogViewModelType | null> => {
         let blog = await blogCollection.findOne({_id: new ObjectId(id)});
         if (!blog) {
             return null
         }
-        return this._mapperBlog(blog);
+        return this._mapDbBlogToView(blog);
     }
 
     createBlog = async (blogData:BlogCreateSchemaType): Promise<string> => {
@@ -45,13 +42,6 @@ export class BlogRepository {
     updateById = async (id: string,
                         blogUpdate: Omit<BlogSchemaInputType, 'createdAt' | 'isMembership'>): Promise<boolean> => {
 
-        /**
-         * acknowledged: true,
-         insertedId: null,
-         matchedCount: 1,
-         modifiedCount: 1,
-         upsertedCount: 0
-         */
         let result = await blogCollection.updateOne({_id: new ObjectId(id)}, {$set: blogUpdate});
 
         return result.matchedCount === 1;

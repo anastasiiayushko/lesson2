@@ -517,7 +517,6 @@ describe("POST DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NOT_FOUND_404)
 
-
         await request(app).get(PATH_POST + '/' + postId).expect(StatusCode.OK_200, res.body)
 
     });

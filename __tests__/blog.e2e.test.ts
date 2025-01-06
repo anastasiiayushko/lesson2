@@ -6,16 +6,17 @@ import {BLOG_INPUT_VALID} from "./helpers/testData";
 import {
     generateRandomStringForTest,
     getAuthHeaderBasicTest,
-    resetTestData, sortedBySortKeyAndDirectionTest
+    resetTestData,
+    sortedBySortKeyAndDirectionTest
 } from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 import {ObjectId} from "mongodb";
 import {blogDataTest} from "../src/features/test/blogData";
-import {createBlogTestRequest, fetchBlogsWithPagingTest} from "./helpers/blogsUtils";
+import {createBlogTestRequest, fetchBlogsWithPagingTest, fetchPostsByBlogIdWithPagingTest} from "./helpers/blogsUtils";
+import {createdPostsDataForBlogId} from "./helpers/postsUtils";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
-let PATH_TEST = SETTINGS.PATH.TESTING;
 
 
 const authHeaderBasicInvalid = getAuthHeaderBasicTest('admin:test')
@@ -458,5 +459,132 @@ describe("BLOG SORTING ", () => {
         // Проверяем порядок элементов
         expect(expectedSortedNames).toEqual(receivedSortedName);
     });
+
+});
+
+type BlogInputType = {
+    name: string // max 15
+    description: string // max 500
+    websiteUrl: string
+}
+describe("BLOG. POSTS BY BLOG_ID WITH PAGING AND QUERY", () => {
+    let blogDb = null;
+    const postsData: { title: string, content: string, shortDescription: string }[] = [
+        {
+            title: "Post 1",
+            content: "Content for Post 1",
+            shortDescription: "Description for Post 1",
+        },
+        {
+            title: "Post 2",
+            content: "Content for Post 2",
+            shortDescription: "Description for Post 2",
+        },
+        {
+            title: "Post 3",
+            content: "Content for Post 3",
+            shortDescription: "Description for Post 3",
+        },
+        {
+            title: "Post 4",
+            content: "Content for Post 4",
+            shortDescription: "Description for Post 4",
+        },
+        {
+            title: "Post 5",
+            content: "Content for Post 5",
+            shortDescription: "Description for Post 5",
+        }
+    ];
+    let blogInput: BlogInputType = {
+        name: "blog 1",
+        description: "description blog 1",
+        websiteUrl: "https://blog.blogspot.com",
+    }
+    let blogInputSecond: BlogInputType = {
+        name: "blog 2",
+        description: "description blog 2",
+        websiteUrl: "https://blog2.blogspot.com",
+    }
+
+    beforeAll(async () => {
+        await resetTestData(app);
+        let res = await createBlog(blogInput, authHeaderBasicValid);
+        expect(res.statusCode).toBe(StatusCode.CREATED_201);
+        blogDb = res.body;
+
+        let resSecond = await createBlog(blogInputSecond, authHeaderBasicValid);
+        expect(resSecond.statusCode).toBe(StatusCode.CREATED_201);
+
+        await createdPostsDataForBlogId(app, blogDb.id, postsData, authHeaderBasicValid);
+        await createdPostsDataForBlogId(app, resSecond.body.id, postsData, authHeaderBasicValid);
+    });
+
+    it("Should be returns post paging is default query params ", async () => {
+
+        let totalDocuments = postsData.length;
+        let defaultPageSize = 10;
+        let expectedPagesCount = Math.ceil(totalDocuments / defaultPageSize);
+
+        let res = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id);
+
+        let body = res.body;
+        expect(body.totalCount).toBe(totalDocuments);
+        expect(body.page).toBe(1);
+        expect(body.pageSize).toBe(defaultPageSize);
+        expect(body.pagesCount).toBe(expectedPagesCount);
+        expect(body.items.length).toBe(totalDocuments);
+        expect(res.statusCode).toBe(StatusCode.OK_200);
+    })
+
+    it("Blog use navigate page. Should be returns  paging blogs. Page size 2. Total doc = 5", async () => {
+
+        let pageSize: number = 2;
+        let totalDocuments = postsData.length;
+        let expectedPagesCount = Math.ceil(totalDocuments / pageSize);
+        const lastPageItemsCount = totalDocuments % pageSize || pageSize;
+
+        let resPage1 = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id, {pageSize: pageSize});
+        let body = resPage1.body;
+
+        expect(body.totalCount).toBe(totalDocuments);
+        expect(body.page).toBe(1);
+        expect(body.pageSize).toBe(pageSize);
+        expect(body.pagesCount).toBe(expectedPagesCount);
+        expect(body.items.length).toBe(pageSize);
+        expect(resPage1.statusCode).toBe(StatusCode.OK_200);
+
+        let resPage2 = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id, {pageSize: pageSize, pageNumber: 2});
+        expect(resPage2.body.page).toBe(2);
+        expect(resPage2.body.items.length).toBe(pageSize);
+
+        let resPage3 = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id, {pageSize: pageSize, pageNumber: 3});
+        expect(resPage3.body.page).toBe(3);
+        expect(resPage3.body.items.length).toBe(lastPageItemsCount);
+
+        // Проверяем, что запрос с превышающим номером страницы возвращает пустой массив
+        const resPageOutOfBounds = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id, {
+            pageSize: pageSize,
+            pageNumber: 4
+        });
+        expect(resPageOutOfBounds.body.page).toBe(4);
+        expect(resPageOutOfBounds.body.items.length).toBe(0);
+    });
+
+    it("Should returns blogs sorted by title = desc", async () => {
+
+        let sortedMock = sortedBySortKeyAndDirectionTest(postsData, "title", "desc")
+        let expectedSortedTitle = sortedMock.map(e => {
+            return e.title;
+        });
+        let res = await fetchPostsByBlogIdWithPagingTest(app, blogDb!.id, {sortBy: "title", sortDirection: "desc"});
+
+        let recSortedTitle = res.body.items.map((e: any) => {
+            return e.title;
+        })
+        // expect(expectedSortedTitle).toEqual(expect.arrayContaining(expect.objectContaining(sortedMock)));
+        expect(expectedSortedTitle).toEqual(recSortedTitle);
+    });
+
 
 });

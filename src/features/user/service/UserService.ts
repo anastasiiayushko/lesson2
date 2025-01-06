@@ -8,7 +8,7 @@ type UserCreatedType = {
     errors: ErrorItemType[] | null,
     userId: string | null
 }
-const SALT_ROUND = 15;
+const SALT_ROUND = 5;
 
 export class UserService {
     private readonly _userRepo = new UserRepository();
@@ -54,7 +54,6 @@ export class UserService {
     }
 
     deleteUser = async (id: string): Promise<boolean> => {
-
         let deleted = await this._userRepo.deleteUserById(id);
         return deleted;
     }

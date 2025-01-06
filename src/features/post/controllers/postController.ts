@@ -16,7 +16,7 @@ export class PostController {
                                 res: Response<PaginationViewModelType<PostViewModel>>) => {
         let query: PostQueryInputType = req.query as PostQueryInputType;
         let queryDef = postQueryPagingDef(query);
-        let postsPaging = await this._postQueryRepo.getPostQuery(queryDef, undefined);
+        let postsPaging = await this._postQueryRepo.getPostQuery(queryDef);
         res.status(StatusCode.OK_200).json(postsPaging);
     }
 
