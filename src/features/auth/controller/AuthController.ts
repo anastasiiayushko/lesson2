@@ -13,14 +13,9 @@ export class AuthController {
 
     loginInSystem = async (req: Request<{}, {}, LoginInputType>, res: Response<ApiErrorResultType>) => {
         let response = await this._userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
-        if (response.errors && !!response.errors.length) {
-            res.status(StatusCode.BAD_REQUEST_400).json({
-                errorsMessages: response.errors
-            });
-            return;
-        }
 
-        if (response.isAuth) {
+
+        if (response) {
             res.sendStatus(StatusCode.NO_CONTENT_204);
             return;
         }

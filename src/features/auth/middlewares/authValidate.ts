@@ -1,6 +1,6 @@
 import {body} from "express-validator";
 
-const loginOrEmailValidate = body('login')
+const loginOrEmailValidate = body('loginOrEmail')
     .isString().withMessage("filed to be string")
     .trim().notEmpty().withMessage("field is empty")
 

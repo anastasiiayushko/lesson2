@@ -4,7 +4,7 @@ import {StatusCode} from "../../../types/status-code-types";
 import {UserInputModel, UserQueryInputType, UserSecureViewModel} from "../../../types/input-output-types/user-types";
 import {UserQueryRepository} from "../dal/UserQueryRepository";
 import {ApiErrorResultType} from "../../../types/output-error-types";
-import {postQueryPagingDef} from "../helpers/postQueryPagingDef";
+import {userQueryPagingDef} from "../helpers/userQueryPagingDef";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
 export class UserController {
@@ -18,6 +18,7 @@ export class UserController {
             res.status(StatusCode.BAD_REQUEST_400).json({
                 errorsMessages: response.errors
             })
+            return;
         }
 
 
@@ -40,7 +41,7 @@ export class UserController {
     getUsersWithPaging = async (req: Request<{}, {}, {}, {}>,
                                 res: Response<PaginationViewModelType<UserSecureViewModel>>) => {
         let query = req.query as UserQueryInputType;
-        let queryDef = postQueryPagingDef(query);
+        let queryDef = userQueryPagingDef(query);
         let usersWithPaging = await this._userQueryRepo.getUsersWithPaging(queryDef);
         res.status(StatusCode.OK_200).json(usersWithPaging);
 

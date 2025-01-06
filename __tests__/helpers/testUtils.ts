@@ -1,12 +1,8 @@
 import {Express} from "express";
-import request, {Response} from "supertest";
+import request from "supertest";
 import {StatusCode} from "../../src/types/status-code-types";
 import {SETTINGS} from "../../src/settings";
-import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
-import {BLOG_INPUT_VALID} from "./testData";
-import {BlogQueryInputType} from "../../src/db/types/db-blog-type";
-import {FilterType, SortDirectionsType} from "../../src/db/types/db-types";
-import {PostQueryInputType} from "../../src/db/types/db-post-type";
+import {SortDirectionsType} from "../../src/db/types/db-types";
 
 
 export const resetTestData = async (app: Express) => {
@@ -28,40 +24,6 @@ export const generateRandomStringForTest = (lengthSymbols: number): string => {
     return result;
 }
 
-export const createBlogTest = async (
-    app: Express,
-    blogData: BlogInputModelType | {} = BLOG_INPUT_VALID,
-    basicAuth: string): Promise<Response> => {
-    const response = await request(app)
-        .post(SETTINGS.PATH.BLOGS)
-        .set({'Authorization': basicAuth})
-        .send(blogData);
-    return response;
-};
-
-
-type BLOG_QUERY_TESTING = FilterType<BlogQueryInputType>
-
-export const getPagingBlogQuery = async (app: Express, query?: BLOG_QUERY_TESTING) => {
-    let _query = query ? query : {};
-
-    const res = await request(app)
-        .get(SETTINGS.PATH.BLOGS)
-        .query(_query)
-        .expect(StatusCode.OK_200);
-
-    return res;
-}
-type POST_QUERY_TESTING = FilterType<PostQueryInputType>
-export const getPagingPostQuery = async (app: Express, query?: POST_QUERY_TESTING) => {
-    let _query = query ? query : {};
-    const res = await request(app)
-        .get(SETTINGS.PATH.POSTS)
-        .query(_query)
-        .expect(StatusCode.OK_200);
-
-    return res;
-}
 
 export const sortedBySortKeyAndDirectionTest = <T>(data: T[], sortBy: keyof T, direction: SortDirectionsType) => {
     return data.sort((a, b) => {

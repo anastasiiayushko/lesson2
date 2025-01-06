@@ -2,28 +2,26 @@ import request from "supertest";
 import {app} from "../src/app";
 import {SETTINGS} from "../src/settings";
 import {
-    createBlogTest,
     generateRandomStringForTest,
-    getAuthHeaderBasicTest, getPagingBlogQuery,
-    getPagingPostQuery,
+    getAuthHeaderBasicTest,
     resetTestData
 } from "./helpers/testUtils";
 import {BlogInputModelType} from "../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID, POST_INPUT_VALID_WITHOUT_BLOG_ID} from "./helpers/testData";
 import {StatusCode} from "../src/types/status-code-types";
-import {PostInputModel, PostViewModel} from "../src/types/input-output-types/post-types";
+import {PostInputModel} from "../src/types/input-output-types/post-types";
 import {ObjectId} from "mongodb";
+import {createBlogTestRequest} from "./helpers/blogsUtils";
+import {fetchPostsWithPagingTest} from "./helpers/postsUtils";
 
-let PATH_BLOG = SETTINGS.PATH.BLOGS;
 let PATH_POST = SETTINGS.PATH.POSTS;
-let PATH_TEST = SETTINGS.PATH.TESTING;
 
 
 const authHeaderBasicInvalid = getAuthHeaderBasicTest('admin:test')
 const authHeaderBasicValid = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
 const createBlog = async (blogData: BlogInputModelType | {} = BLOG_INPUT_VALID, basicAuth = authHeaderBasicValid) => {
-    return await createBlogTest(app, blogData, basicAuth);
+    return await createBlogTestRequest(app, blogData, basicAuth);
 };
 const createPost = async (postData: PostInputModel | {}, basicAuth = authHeaderBasicValid) => {
     return await request(app)
@@ -47,7 +45,7 @@ describe("POST CREATE PROTECTED", () => {
 
         expect(res.status).toBe(StatusCode.UNAUTHORIZED_401);
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
 
     });
@@ -125,7 +123,7 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, blogId empty", async () => {
@@ -147,7 +145,7 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
 
@@ -172,7 +170,7 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, title empty", async () => {
@@ -196,7 +194,7 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
 
@@ -221,7 +219,7 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, shortDescription empty", async () => {
@@ -244,7 +242,7 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
 
@@ -268,7 +266,7 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
     it("Should be 400, content empty", async () => {
@@ -291,7 +289,7 @@ describe("POST CREATE PROTECTED", () => {
                 }
             ]
         })
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
 
@@ -327,7 +325,7 @@ describe("POST CREATE PROTECTED", () => {
             ]
         })
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
 
@@ -495,7 +493,7 @@ describe("POST DELETE PROTECTED", () => {
             .set({'Authorization': authHeaderBasicValid})
             .expect(StatusCode.NO_CONTENT_204)
 
-        const posts = await getPagingPostQuery(app);
+        const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
 
     });
@@ -591,7 +589,7 @@ describe("POST PUBLIC", () => {
         let defaultPageSize = 2;
         let expectedPagesCount = Math.ceil(totalDocuments / defaultPageSize);
 
-        let res = await getPagingPostQuery(app, {pageSize:defaultPageSize});
+        let res = await fetchPostsWithPagingTest(app, {pageSize:defaultPageSize});
         let body = res.body;
 
         expect(body.totalCount).toBe(totalDocuments);

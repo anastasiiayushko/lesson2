@@ -42,27 +42,15 @@ export class UserService {
         return {errors: null, userId: userId}
     }
 
-    checkCredentialsUser = async (loginOrEmail: string, password: string): Promise<{
-        isAuth: boolean,
-        errors: ErrorItemType[]
-    }> => {
-        let errors: ErrorItemType[] = [];
+    checkCredentialsUser = async (loginOrEmail: string, password: string): Promise<boolean> => {
         let findUser = await this._userRepo.getUserByLoginOrEmail(loginOrEmail);
-
         if (!findUser) {
-            errors.push({message: "the login is not unique", field: "loginOrEmail"});
-            return {
-                isAuth: false,
-                errors: errors
-            }
+            return false
         }
 
         let comparePassword = await bcrypt.compare(password, findUser.password);
+        return comparePassword;
 
-        return {
-            isAuth: comparePassword,
-            errors: []
-        }
     }
 
     deleteUser = async (id: string): Promise<boolean> => {

@@ -1,6 +1,6 @@
 import {UserQueryInputType} from "../../../types/input-output-types/user-types";
 
-export const postQueryPagingDef = (query:UserQueryInputType ):UserQueryInputType  => {
+export const userQueryPagingDef = (query:UserQueryInputType ):UserQueryInputType  => {
 
     return {
         pageNumber: query?.pageNumber ? +query.pageNumber : 1,
