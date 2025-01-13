@@ -3,16 +3,15 @@ import {Collection, Db, MongoClient} from "mongodb";
 import {SETTINGS} from "../settings";
 import {PostSchemaType} from "./types/db-post-type";
 import {UserSchemaType} from "./types/db-user-type";
+import {CommentSchemaType} from "./types/db-comments-type";
 
 
-
-export const resetDB = async ():Promise<void> => {
-
+export const resetDB = async (): Promise<void> => {
     await blogCollection.drop();
     await postCollection.drop();
     await userCollection.drop();
+    await commentCollection.drop();
 }
-
 
 
 const client: MongoClient = new MongoClient(SETTINGS.MONGO_URL);
@@ -22,6 +21,7 @@ export const db: Db = client.db(SETTINGS.DATABASE_NAME);
 export const blogCollection: Collection<BlogSchemaType> = db.collection<BlogSchemaType>(SETTINGS.DB_COLLECTION_NAME.BLOGS);
 export const postCollection: Collection<PostSchemaType> = db.collection<PostSchemaType>(SETTINGS.DB_COLLECTION_NAME.POSTS);
 export const userCollection: Collection<UserSchemaType> = db.collection<UserSchemaType>(SETTINGS.DB_COLLECTION_NAME.USERS);
+export const commentCollection: Collection<CommentSchemaType> = db.collection<CommentSchemaType>(SETTINGS.DB_COLLECTION_NAME.COMMENTS);
 
 export const connectionDB = async (): Promise<boolean> => {
     try {

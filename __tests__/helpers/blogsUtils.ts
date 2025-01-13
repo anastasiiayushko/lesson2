@@ -4,11 +4,9 @@ import {Express} from "express";
 import request, {Response} from "supertest";
 import {SETTINGS} from "../../src/settings";
 import {StatusCode} from "../../src/types/status-code-types";
-import {BlogInputModelType, BlogViewModelType} from "../../src/types/input-output-types/blog-types";
+import {BlogInputModelType} from "../../src/types/input-output-types/blog-types";
 import {BLOG_INPUT_VALID} from "./testData";
 import {PostQueryInputType} from "../../src/db/types/db-post-type";
-
-
 
 
 type BLOG_QUERY_TESTING = FilterType<BlogQueryInputType>
@@ -40,6 +38,7 @@ export const fetchPostsByBlogIdWithPagingTest = async (app: Express, blogId:stri
 export const createBlogTestRequest = async (
     app: Express,
     blogData: BlogInputModelType | {} = BLOG_INPUT_VALID,
+
     // basicAuth: string): Promise<BlogViewModelType> => {
     basicAuth: string): Promise<Response> => {
     const response = await request(app)

@@ -1,17 +1,36 @@
-import {UserQueryInputType, UserSecureViewModel} from "../../../types/input-output-types/user-types";
+import {
+    UserAuthMeModelViewType,
+    UserQueryInputType,
+    UserSecureViewModel
+} from "../../../types/input-output-types/user-types";
 import {UserSchemaType} from "../../../db/types/db-user-type";
 import {userCollection} from "../../../db/db";
 import {ObjectId} from "mongodb";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
+
 export class UserQueryRepository {
-    _mapperSecureUser = (item: UserSchemaType): UserSecureViewModel => {
+    private _mapperSecureUser = (item: UserSchemaType): UserSecureViewModel => {
         return {
             id: item._id.toString(),
             login: item.login,
             email: item.email,
             createdAt: item.createdAt
         }
+    }
+    private _mapperToAuthMe = (item: UserSchemaType): UserAuthMeModelViewType => {
+        return {
+            userId: item._id.toString(),
+            email: item.email,
+            login: item.login,
+        }
+    }
+    getUserForAuthMe = async (id: string): Promise<UserAuthMeModelViewType | null> => {
+        let user = await userCollection.findOne({_id: new ObjectId(id)});
+        if (!user) {
+            return null
+        }
+        return this._mapperToAuthMe(user)
     }
 
     getUserById = async (id: string): Promise<UserSecureViewModel | null> => {
@@ -30,11 +49,11 @@ export class UserQueryRepository {
             const orConditions: any[] = [];
 
             if (searchEmailTerm) {
-                orConditions.push({ email: { $regex: searchEmailTerm, $options: 'i' } });
+                orConditions.push({email: {$regex: searchEmailTerm, $options: 'i'}});
             }
 
             if (searchLoginTerm) {
-                orConditions.push({ login: { $regex: searchLoginTerm, $options: 'i' } });
+                orConditions.push({login: {$regex: searchLoginTerm, $options: 'i'}});
             }
 
             filter = {

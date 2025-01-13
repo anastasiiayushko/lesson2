@@ -2,6 +2,8 @@ import {UserRepository} from "../dal/UserRepository";
 import {UserInputModel} from "../../../types/input-output-types/user-types";
 import bcrypt from "bcrypt";
 import {ErrorItemType} from "../../../types/output-error-types";
+import {StatusCode} from "../../../types/status-code-types";
+import {ServiceResponseType} from "../../../types/service-response-type";
 
 
 type UserCreatedType = {
@@ -42,14 +44,32 @@ export class UserService {
         return {errors: null, userId: userId}
     }
 
-    checkCredentialsUser = async (loginOrEmail: string, password: string): Promise<boolean> => {
+    checkCredentialsUser = async (loginOrEmail: string, password: string):
+        Promise<ServiceResponseType<{ userId: string } | null>> => {
         let findUser = await this._userRepo.getUserByLoginOrEmail(loginOrEmail);
         if (!findUser) {
-            return false
+            return {
+                status: StatusCode.NOT_FOUND__404,
+                data: null,
+                extensions: []
+
+            }
         }
 
         let comparePassword = await bcrypt.compare(password, findUser.password);
-        return comparePassword;
+        if (comparePassword) {
+            return {
+                status: StatusCode.OK_200,
+                data: {userId: findUser.id},
+                extensions: []
+            }
+        }
+
+        return {
+            status: StatusCode.UNAUTHORIZED_401,
+            data: null,
+            extensions: []
+        }
 
     }
 

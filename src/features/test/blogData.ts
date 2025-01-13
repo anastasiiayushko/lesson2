@@ -1,8 +1,10 @@
-import {ObjectId} from "mongodb";
+import {ObjectId, WithId} from "mongodb";
+import {BlogSchemaType} from "../../db/types/db-blog-type";
 
-export const blogDataTest = [
+export const blogDataTest:WithId<BlogSchemaType>[] = [
 
-    {     _id: new ObjectId(),
+    {
+        _id: new ObjectId(),
         "name": "DavidWalsh",
         "description": "Personal blog of David Walsh sharing tips on JavaScript, Node.js, and web development.",
         "websiteUrl": "https://davidwalsh.name/",

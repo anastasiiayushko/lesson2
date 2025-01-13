@@ -19,6 +19,7 @@ export class BlogController {
     private _blogQueryRepo = new BlogQueryRepository();
     private _postQueryRepo = new PostQueryRepository();
 
+
     getBlogsWithPaging =
         async (req: Request<{}, {}, {}, {}>,
                res: Response<PaginationViewModelType<BlogViewModelType>>

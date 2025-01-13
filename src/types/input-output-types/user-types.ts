@@ -23,8 +23,10 @@ export type UserFullViewModel = {
 export type UserQueryInputType = {
     searchEmailTerm: string | null,
     searchLoginTerm: string | null,
-    sortBy: 'login' | 'email'| 'createdAt',
+    sortBy: 'login' | 'email' | 'createdAt',
     sortDirection: SortDirectionsType,
     pageNumber: number,
     pageSize: number,
 }
+
+export type UserAuthMeModelViewType = { email: string, login: string, userId: string };

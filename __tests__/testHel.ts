@@ -1,60 +1,105 @@
-// > Homework 4  Blogs with pagination  GET -> "/blogs/:blogId/posts": should return status 200; content: posts for specific blog with pagination;  used additional methods: POST -> /blogs, POST -> /posts;
+// > Homework 6  Comments for posts with auth  POST -> "/posts/:postId/comments": should create new comment; status 201; content: created comment;  used additional methods: POST -> /blogs, POST -> /posts, GET -> /comments/:commentId;
 //
-// Passed queryParams: ""
 //
-// Expected:
-// {"pagesCount":2,"page":1,"pageSize":10,"totalCount":12,"items":[{"id":"1735407942025","title":"4965post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:42.025Z"},{"id":"1735407941480","title":"4964post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:41.480Z"},{"id":"1735407940931","title":"4963post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:40.931Z"},{"id":"1735407940386","title":"4962post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:40.386Z"},{"id":"1735407939816","title":"4961post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:39.816Z"},{"id":"1735407939250","title":"4960post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:39.250Z"},{"id":"1735407938702","title":"4959post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:38.702Z"},{"id":"1735407938151","title":"4958post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:38.151Z"},{"id":"1735407937607","title":"4957post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:37.608Z"},{"id":"1735407937064","title":"4956post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","blogName":"new blog","createdAt":"2024-12-28T17:45:37.064Z"}]}
 //
-// Received:
-// {"items":[{"_id":"67703946cbf0d2e63b2d0720","id":"1735407942025","title":"4965post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:42.025Z","blogName":"new blog"},{"_id":"67703945cbf0d2e63b2d071f","id":"1735407941480","title":"4964post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:41.480Z","blogName":"new blog"},{"_id":"67703944cbf0d2e63b2d071e","id":"1735407940931","title":"4963post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:40.931Z","blogName":"new blog"},{"_id":"67703944cbf0d2e63b2d071d","id":"1735407940386","title":"4962post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:40.386Z","blogName":"new blog"},{"_id":"67703943cbf0d2e63b2d071c","id":"1735407939816","title":"4961post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:39.816Z","blogName":"new blog"},{"_id":"67703943cbf0d2e63b2d071b","id":"1735407939250","title":"4960post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:39.250Z","blogName":"new blog"},{"_id":"67703942cbf0d2e63b2d071a","id":"1735407938702","title":"4959post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:38.702Z","blogName":"new blog"},{"_id":"67703942cbf0d2e63b2d0719","id":"1735407938151","title":"4958post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:38.151Z","blogName":"new blog"},{"_id":"67703941cbf0d2e63b2d0718","id":"1735407937607","title":"4957post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:37.608Z","blogName":"new blog"},{"_id":"67703941cbf0d2e63b2d0717","id":"1735407937064","title":"4956post title","shortDescription":"description","content":"new post content","blogId":"1735407935359","createdAt":"2024-12-28T17:45:37.064Z","blogName":"new blog"}],"pageSize":10,"pagesCount":2,"totalCount":12,"page":1}
+// Expected: success response
 //
-// 105 |
-// 106 |     if (expectedData) {
-// > 107 |       expect(data).toBeEqualWithQueryParams(expectedData, queryParams, withDiffPrint);
-// |                    ^
-//     108 |     }
-// 109 |   }
-// 110 | };
+// Received: Request failed with status code 401
 //
-// at performQueryParamsChecker (src/tests/jest/back/testHelpers/performCheckers.ts:107:20)
+// Config:
+//     url: comments/678514ecbebd4b43c27f4d46
+// method: get
+// response status: 401
+// request body: undefined
+// response data: "Unauthorized"
+//
+// 22 |     };
+// 23 |
+// > 24 |     expect(mappedError).printError(description);
+// |                         ^
+// 25 |   }
+// 26 |
+// 27 |   throw new Error(error.message);
+//
+// at handleTestError (src/tests/jest/back/testHelpers/handleTestError.ts:24:25)
+// at src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:70:38
 // at runMicrotasks (<anonymous>)
-// at Object.<anonymous> (src/tests/jest/back/describes/blogs/blogs-with-pagination-describe.ts:202:7)
+// at performPOSTTestFlow (src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:68:41)
+// at Object.<anonymous> (src/tests/jest/back/describes/comments/comments-V2-describe.ts:97:7)
 //
-// > Homework 4  Blogs with pagination  GET -> "blogs": should return status 200; content: blog array with pagination;  used additional methods: POST -> /blogs, GET -> /blogs;
+// > Homework 6  Comments for posts with auth  DELETE -> "/comments/:id": should delete comment by id; status 204;  used additional methods: POST -> /blogs, POST -> /posts, GET -> /comments/:id;
 //
-// Passed queryParams: ""
+// expect(received).toBe(expected) // Object.is equality
 //
-// Expected: {"pagesCount":2,"page":1,"pageSize":10,"totalCount":12,"items":[{"id":"1735407949845","name":"Timma","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:49.845Z","isMembership":false},{"id":"1735407949300","name":"Tima","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:49.300Z","isMembership":false},{"id":"1735407948759","name":"Alex","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:48.759Z","isMembership":false},{"id":"1735407948220","name":"Alexey","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:48.220Z","isMembership":false},{"id":"1735407947683","name":"Andrey","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:47.683Z","isMembership":false},{"id":"1735407947090","name":"Don","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:47.090Z","isMembership":false},{"id":"1735407946542","name":"John","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:46.542Z","isMembership":false},{"id":"1735407945960","name":"Gggrrttt","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:45.960Z","isMembership":false},{"id":"1735407945417","name":"Mima","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:45.417Z","isMembership":false},{"id":"1735407944831","name":"Dima","websiteUrl":"https://someurl.com","description":"description","createdAt":"2024-12-28T17:45:44.831Z","isMembership":false}]}
+// Expected: 404
+// Received: 401
 //
-// Received: {"items":[{"_id":"6770394dcbf0d2e63b2d072c","name":"Timma","description":"description","websiteUrl":"https://someurl.com","id":"1735407949845","createdAt":"2024-12-28T17:45:49.845Z","isMembership":false},{"_id":"6770394dcbf0d2e63b2d072b","name":"Tima","description":"description","websiteUrl":"https://someurl.com","id":"1735407949300","createdAt":"2024-12-28T17:45:49.300Z","isMembership":false},{"_id":"6770394ccbf0d2e63b2d072a","name":"Alex","description":"description","websiteUrl":"https://someurl.com","id":"1735407948759","createdAt":"2024-12-28T17:45:48.759Z","isMembership":false},{"_id":"6770394ccbf0d2e63b2d0729","name":"Alexey","description":"description","websiteUrl":"https://someurl.com","id":"1735407948220","createdAt":"2024-12-28T17:45:48.220Z","isMembership":false},{"_id":"6770394bcbf0d2e63b2d0728","name":"Andrey","description":"description","websiteUrl":"https://someurl.com","id":"1735407947683","createdAt":"2024-12-28T17:45:47.683Z","isMembership":false},{"_id":"6770394bcbf0d2e63b2d0727","name":"Don","description":"description","websiteUrl":"https://someurl.com","id":"1735407947090","createdAt":"2024-12-28T17:45:47.090Z","isMembership":false},{"_id":"6770394acbf0d2e63b2d0726","name":"John","description":"description","websiteUrl":"https://someurl.com","id":"1735407946542","createdAt":"2024-12-28T17:45:46.542Z","isMembership":false},{"_id":"67703949cbf0d2e63b2d0725","name":"Gggrrttt","description":"description","websiteUrl":"https://someurl.com","id":"1735407945960","createdAt":"2024-12-28T17:45:45.960Z","isMembership":false},{"_id":"67703949cbf0d2e63b2d0724","name":"Mima","description":"description","websiteUrl":"https://someurl.com","id":"1735407945417","createdAt":"2024-12-28T17:45:45.417Z","isMembership":false},{"_id":"67703948cbf0d2e63b2d0723","name":"Dima","description":"description","websiteUrl":"https://someurl.com","id":"1735407944831","createdAt":"2024-12-28T17:45:44.831Z","isMembership":false}],"pageSize":10,"pagesCount":2,"totalCount":12,"page":1}
+// 138 |
+// 139 |   expect(deleteEntityResponseStatus).toBe(204);
+// > 140 |   expect(statusAfterDeleting).toBe(404);
+// |                               ^
+// 141 | };
+// 142 |
+// 143 | export const performGETTestFlow = async <T>({
 //
-// 105 |
-// 106 |     if (expectedData) {
-// > 107 |       expect(data).toBeEqualWithQueryParams(expectedData, queryParams, withDiffPrint);
-// |                    ^
-//     108 |     }
-// 109 |   }
-// 110 | };
-//
-// at performQueryParamsChecker (src/tests/jest/back/testHelpers/performCheckers.ts:107:20)
+//     at performDELETETestFlow (src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:140:31)
 // at runMicrotasks (<anonymous>)
-// at Object.<anonymous> (src/tests/jest/back/describes/blogs/blogs-with-pagination-describe.ts:158:7)
+// at Object.<anonymous> (src/tests/jest/back/describes/comments/comments-V2-describe.ts:230:7)
 //
-// > Homework 4  Posts with pagination  GET -> "/posts": should return status 200; content: posts array with pagination;  used additional methods: POST -> /blogs, POST -> /posts;
+// > Homework 6  Comments for posts with auth  PUT -> "/comments/:commentId": should update comment by id; status 204;  used additional methods: POST -> /blogs, POST -> /posts, POST -> /posts/:postId/comments, GET -> /comments/:commentId;
 //
-// Passed queryParams: ""
 //
-// Expected: {"pagesCount":2,"page":1,"pageSize":10,"totalCount":12,"items":[{"id":"1735408004920","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408004377","blogName":"new blog11","createdAt":"2024-12-28T17:46:44.920Z"},{"id":"1735408003828","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408003281","blogName":"new blog10","createdAt":"2024-12-28T17:46:43.828Z"},{"id":"1735408002671","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408002122","blogName":"new blog9","createdAt":"2024-12-28T17:46:42.671Z"},{"id":"1735408001581","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408001028","blogName":"new blog8","createdAt":"2024-12-28T17:46:41.581Z"},{"id":"1735408000487","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407999947","blogName":"new blog7","createdAt":"2024-12-28T17:46:40.487Z"},{"id":"1735407999400","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407998858","blogName":"new blog6","createdAt":"2024-12-28T17:46:39.400Z"},{"id":"1735407998311","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407997741","blogName":"new blog5","createdAt":"2024-12-28T17:46:38.311Z"},{"id":"1735407997182","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407996511","blogName":"new blog4","createdAt":"2024-12-28T17:46:37.182Z"},{"id":"1735407995969","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407995383","blogName":"new blog3","createdAt":"2024-12-28T17:46:35.970Z"},{"id":"1735407994846","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407994303","blogName":"new blog2","createdAt":"2024-12-28T17:46:34.846Z"}]}
 //
-// Received: {"items":[{"_id":"67703984cbf0d2e63b2d0756","id":"1735408004920","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408004377","createdAt":"2024-12-28T17:46:44.920Z","blogName":"new blog11"},{"_id":"67703983cbf0d2e63b2d0754","id":"1735408003828","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408003281","createdAt":"2024-12-28T17:46:43.828Z","blogName":"new blog10"},{"_id":"67703982cbf0d2e63b2d0752","id":"1735408002671","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408002122","createdAt":"2024-12-28T17:46:42.671Z","blogName":"new blog9"},{"_id":"67703981cbf0d2e63b2d0750","id":"1735408001581","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735408001028","createdAt":"2024-12-28T17:46:41.581Z","blogName":"new blog8"},{"_id":"67703980cbf0d2e63b2d074e","id":"1735408000487","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407999947","createdAt":"2024-12-28T17:46:40.487Z","blogName":"new blog7"},{"_id":"6770397fcbf0d2e63b2d074c","id":"1735407999400","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407998858","createdAt":"2024-12-28T17:46:39.400Z","blogName":"new blog6"},{"_id":"6770397ecbf0d2e63b2d074a","id":"1735407998311","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407997741","createdAt":"2024-12-28T17:46:38.311Z","blogName":"new blog5"},{"_id":"6770397dcbf0d2e63b2d0748","id":"1735407997182","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407996511","createdAt":"2024-12-28T17:46:37.182Z","blogName":"new blog4"},{"_id":"6770397bcbf0d2e63b2d0746","id":"1735407995969","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407995383","createdAt":"2024-12-28T17:46:35.970Z","blogName":"new blog3"},{"_id":"6770397acbf0d2e63b2d0744","id":"1735407994846","title":"post title","shortDescription":"description","content":"new post content","blogId":"1735407994303","createdAt":"2024-12-28T17:46:34.846Z","blogName":"new blog2"}],"pageSize":10,"pagesCount":2,"totalCount":12,"page":1}
+// Expected: success response
 //
-// 105 |
-// 106 |     if (expectedData) {
-// > 107 |       expect(data).toBeEqualWithQueryParams(expectedData, queryParams, withDiffPrint);
-// |                    ^
-//     108 |     }
-// 109 |   }
-// 110 | };
+// Received: Request failed with status code 401
 //
-// at performQueryParamsChecker (src/tests/jest/back/testHelpers/performCheckers.ts:107:20)
-// at Object.<anonymous> (src/tests/jest/back/describes/posts/postsWithPagination-describe.ts:66:7)
+// Config:
+//     url: comments/678514fcbebd4b43c27f4d5a
+// method: get
+// response status: 401
+// request body: undefined
+// response data: "Unauthorized"
+//
+// 22 |     };
+// 23 |
+// > 24 |     expect(mappedError).printError(description);
+// |                         ^
+// 25 |   }
+// 26 |
+// 27 |   throw new Error(error.message);
+//
+// at handleTestError (src/tests/jest/back/testHelpers/handleTestError.ts:24:25)
+// at src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:111:38
+// at runMicrotasks (<anonymous>)
+// at performPUTTestFlow (src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:109:41)
+// at Object.<anonymous> (src/tests/jest/back/describes/comments/comments-V2-describe.ts:134:7)
+//
+// > Homework 6  Comments for posts with auth  GET -> "comments/:commentsId": should return status 200; content: comment by id;  used additional methods: POST -> /blogs, POST -> /posts, POST -> /posts/:postId/comments;
+//
+//
+//
+// Expected: success response
+//
+// Received: Request failed with status code 401
+//
+// Config:
+//     url: comments/678514febebd4b43c27f4d5d
+// method: get
+// response status: 401
+// request body: undefined
+// response data: "Unauthorized"
+//
+// 22 |     };
+// 23 |
+// > 24 |     expect(mappedError).printError(description);
+// |                         ^
+// 25 |   }
+// 26 |
+// 27 |   throw new Error(error.message);
+//
+// at handleTestError (src/tests/jest/back/testHelpers/handleTestError.ts:24:25)
+// at src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:83:38
+// at runMicrotasks (<anonymous>)
+// at performGETByIdTestFlow (src/tests/jest/back/testHelpers/performTestsFlow/performTestsFlow.ts:81:72)
+// at Object.<anonymous> (src/tests/jest/back/describes/comments/comments-V2-describe.ts:202:7)

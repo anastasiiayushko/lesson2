@@ -8,12 +8,17 @@ import {userQueryPagingDef} from "../helpers/userQueryPagingDef";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 
 export class UserController {
-    private readonly _userService = new UserService();
-    private readonly _userQueryRepo = new UserQueryRepository();
+    private readonly userService: UserService
+    private readonly userQueryRepository: UserQueryRepository;
+
+    constructor() {
+        this.userService = new UserService();
+        this.userQueryRepository = new UserQueryRepository();
+    }
 
     createUser = async (req: Request<{}, {}, UserInputModel>,
                         res: Response<ApiErrorResultType | UserSecureViewModel>) => {
-        let response = await this._userService.createUser(req.body);
+        let response = await this.userService.createUser(req.body);
         if (response.errors && !!response.errors.length) {
             res.status(StatusCode.BAD_REQUEST_400).json({
                 errorsMessages: response.errors
@@ -22,14 +27,14 @@ export class UserController {
         }
 
 
-        let user = await this._userQueryRepo.getUserById(response.userId!);
+        let user = await this.userQueryRepository.getUserById(response.userId!);
         res.status(StatusCode.CREATED_201).json(user!);
 
 
     }
 
     deleteUserById = async (req: Request<{ id: string }>, res: Response) => {
-        let isDeleted = await this._userService.deleteUser(req.params.id);
+        let isDeleted = await this.userService.deleteUser(req.params.id);
         if (isDeleted) {
             res.sendStatus(StatusCode.NO_CONTENT_204);
             return;
@@ -42,7 +47,7 @@ export class UserController {
                                 res: Response<PaginationViewModelType<UserSecureViewModel>>) => {
         let query = req.query as UserQueryInputType;
         let queryDef = userQueryPagingDef(query);
-        let usersWithPaging = await this._userQueryRepo.getUsersWithPaging(queryDef);
+        let usersWithPaging = await this.userQueryRepository.getUsersWithPaging(queryDef);
         res.status(StatusCode.OK_200).json(usersWithPaging);
 
     }
