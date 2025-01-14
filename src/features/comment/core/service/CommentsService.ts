@@ -30,7 +30,7 @@ export class CommentsService {
         let user = await this.userRepository.getUserById(userId);
         if (!user) {
             return {
-                status: StatusCode.UNAUTHORIZED_401,
+                status: StatusCode.SERVER_ERROR,
                 data: null, extensions: [], errorMessage: "Not found user by id"
             }
         }

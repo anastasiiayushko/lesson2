@@ -9,7 +9,6 @@ import {authRequests} from "../../auth/authRequests";
 import {commentRequests} from "../commentRequests";
 import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
-import {ApiErrorResultType} from "../../../src/types/output-error-types";
 import {jwtService} from "../../../src/app/jwtService";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
@@ -55,7 +54,7 @@ const postEntry: WithId<PostSchemaType>[] = [
     },
 ]
 
-describe('Comment update', () => {
+describe('Comment delete', () => {
     beforeAll(async () => {
         await testingRequests.resetAll();
         await userRequests.createUser(BASIC_VALID_HEADER, userNika);
@@ -64,7 +63,7 @@ describe('Comment update', () => {
         await testingRequests.insertPostsAndReturn([...postEntry]);
     })
 
-    it("Should return 403 If try edit the comment that is not your own ", async () => {
+    it("Should return 403 If try delete the comment that is not your own ", async () => {
         let nikaLoginResultOwner = await authRequests.login(userNika.login, userNika.password)
         let tokenOwner = nikaLoginResultOwner.body.accessToken;
         expect(tokenOwner).toEqual(expect.any(String))
@@ -77,9 +76,8 @@ describe('Comment update', () => {
         /* edit comment gust */
         let igorLoginResult = await authRequests.login(userIgor.login, userIgor.password);
         let tokenGust = igorLoginResult.body.accessToken;
-        let commentBodyUpdate = generateRandomStringForTest(40);
-        let updateRes = await commentRequests.updateComment(tokenGust, comment.id, commentBodyUpdate);
-        expect(updateRes.status).toBe(StatusCode.FORBIDDEN_403);
+        let deleteRes = await commentRequests.deleteComment(tokenGust, comment.id);
+        expect(deleteRes.status).toBe(StatusCode.FORBIDDEN_403);
         /* **/
         let commentByIdRes = await commentRequests.getCommentById(commentCreateRes.body.id);
         expect(commentByIdRes.body).toMatchObject<CommentViewModelType>(comment);
@@ -95,44 +93,11 @@ describe('Comment update', () => {
         let comment = commentCreateRes.body;
         let tokenGust = await jwtService.createToken(new ObjectId().toString())
 
-        let commentRes = await commentRequests.updateComment(tokenGust, comment.id, commentBody);
+        let commentRes = await commentRequests.deleteComment(tokenGust, comment.id);
         expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);
     })
 
-    it("Should return 400 if body content less 20", async () => {
-        let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
-        let token = nikaLoginResult.body.accessToken;
 
-        let commentTargetPost = postEntry[0];
-        let commentBodyCreate = generateRandomStringForTest(30)
-        let commentPostRes = await commentRequests.createCommentByPostIdParams(token, commentTargetPost._id.toString(), commentBodyCreate);
-
-        let commentBodyUpdate = generateRandomStringForTest(15)
-        let commentPutRes = await commentRequests.updateComment(token, commentPostRes.body.id, commentBodyUpdate)
-        expect(commentPutRes.status).toBe(StatusCode.BAD_REQUEST_400);
-        expect(commentPutRes.body).toMatchObject<ApiErrorResultType>({
-            errorsMessages: [
-                {field: 'content', message: expect.any(String)}
-            ]
-        })
-    })
-    it("Should return 400 if body content more 300", async () => {
-        let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
-        let token = nikaLoginResult.body.accessToken;
-
-        let commentTargetPost = postEntry[0];
-        let commentBodyCreate = generateRandomStringForTest(30)
-        let commentPostRes = await commentRequests.createCommentByPostIdParams(token, commentTargetPost._id.toString(), commentBodyCreate);
-
-        let commentBodyUpdate = generateRandomStringForTest(301)
-        let commentPutRes = await commentRequests.updateComment(token, commentPostRes.body.id, commentBodyUpdate)
-        expect(commentPutRes.status).toBe(StatusCode.BAD_REQUEST_400);
-        expect(commentPutRes.body).toMatchObject<ApiErrorResultType>({
-            errorsMessages: [
-                {field: 'content', message: expect.any(String)}
-            ]
-        })
-    })
 
     it("Should return 404 if commentId no existing", async () => {
         let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
@@ -144,11 +109,11 @@ describe('Comment update', () => {
         expect(commentRes.status).toBe(StatusCode.CREATED_201);
 
         let commentId = new ObjectId().toString()
-        let commentPutRes = await commentRequests.updateComment(token, commentId, commentBody + "test")
+        let commentPutRes = await commentRequests.deleteComment(token, commentId)
         expect(commentPutRes.status).toBe(StatusCode.NOT_FOUND__404);
     })
 
-    it("Should return 204 success update comment", async () => {
+    it("Should return 204 success delete comment", async () => {
         let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
         let token = nikaLoginResult.body.accessToken;
 
@@ -158,16 +123,10 @@ describe('Comment update', () => {
         expect(commentRes.status).toBe(StatusCode.CREATED_201);
 
         let commentId = commentRes.body.id;
-        let commentUpdate = generateRandomStringForTest(35);
-        let commentPutRes = await commentRequests.updateComment(token, commentId, commentUpdate)
+        let commentPutRes = await commentRequests.deleteComment(token, commentId)
         expect(commentPutRes.status).toBe(StatusCode.NO_CONTENT_204);
 
         let commentByIdRes = await commentRequests.getCommentById(commentId);
-        expect(commentByIdRes.body).toMatchObject<CommentViewModelType>({
-            id: commentId,
-            content: commentUpdate,
-            commentatorInfo: commentRes.body.commentatorInfo,
-            createdAt: commentRes.body.createdAt
-        })
+        expect(commentByIdRes.status).toBe(StatusCode.NOT_FOUND__404)
     })
 });
