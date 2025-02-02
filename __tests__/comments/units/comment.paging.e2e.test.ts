@@ -65,7 +65,6 @@ describe('Comments paging', () => {
         let noExistingPage = pageCount + 1;
         let postFirst = postEntry[0]
         let resWithPaging = await commentRequests.getCommentsByPostWithPaging(postFirst._id.toString(), {pageSize: pageSize});
-        console.log(resWithPaging)
 
         expect(resWithPaging.body.items.length).toBe(6);
         expect(resWithPaging.body.page).toBe(1);

@@ -15,7 +15,7 @@ export class UserQueryRepository {
             id: item._id.toString(),
             login: item.login,
             email: item.email,
-            createdAt: item.createdAt
+            createdAt: item.createdAt,
         }
     }
     private _mapperToAuthMe = (item: UserSchemaType): UserAuthMeModelViewType => {

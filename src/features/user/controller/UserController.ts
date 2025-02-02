@@ -18,16 +18,15 @@ export class UserController {
 
     createUser = async (req: Request<{}, {}, UserInputModel>,
                         res: Response<ApiErrorResultType | UserSecureViewModel>) => {
-        let response = await this.userService.createUser(req.body);
-        if (response.errors && !!response.errors.length) {
-            res.status(StatusCode.BAD_REQUEST_400).json({
-                errorsMessages: response.errors
+        let result = await this.userService.createUser(req.body, true);
+        if(result.extensions?.length || !result.data){
+            res.status(result.status).json({
+                errorsMessages: result.extensions
             })
             return;
         }
 
-
-        let user = await this.userQueryRepository.getUserById(response.userId!);
+        let user = await this.userQueryRepository.getUserById(result.data.userId);
         res.status(StatusCode.CREATED_201).json(user!);
 
 

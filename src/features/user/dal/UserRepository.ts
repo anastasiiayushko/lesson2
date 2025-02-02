@@ -1,18 +1,10 @@
 import {userCollection} from "../../../db/db";
-import {UserSchemaInputType, UserSchemaType} from "../../../db/types/db-user-type";
+import {EmailConfirmationDbType, UserSchemaInputType, UserSchemaType} from "../../../db/types/db-user-type";
 import {UserFullViewModel, UserSecureViewModel} from "../../../types/input-output-types/user-types";
 import {ObjectId} from "mongodb";
+import {mappedUserDbToUserView} from "./mapper/mappedUserDbToUserView";
 
 export class UserRepository {
-    _mapperUser = (item: UserSchemaType): UserFullViewModel => {
-        return {
-            id: item._id.toString(),
-            login: item.login,
-            email: item.email,
-            password: item.password,
-            createdAt: item.createdAt,
-        }
-    }
 
     createUser = async (userInput: UserSchemaInputType): Promise<string> => {
         let user = await userCollection.insertOne(userInput as UserSchemaType);
@@ -25,7 +17,7 @@ export class UserRepository {
         if (!user) {
             return null
         }
-        return this._mapperUser(user);
+        return mappedUserDbToUserView.viewFull(user);
     }
 
     getUserByLoginOrEmail = async (loginOrEmail: string): Promise<UserFullViewModel | null> => {
@@ -35,7 +27,7 @@ export class UserRepository {
         if (!user) {
             return null;
         }
-        return this._mapperUser(user);
+        return mappedUserDbToUserView.viewFull(user)
     }
 
     getUserById = async (id: string): Promise<UserFullViewModel | null> => {
@@ -43,7 +35,7 @@ export class UserRepository {
         if (!user) {
             return null;
         }
-        return this._mapperUser(user);
+        return mappedUserDbToUserView.viewFull(user)
     }
 
     deleteUserById = async (id: string): Promise<boolean> => {
@@ -51,5 +43,29 @@ export class UserRepository {
         return command.deletedCount === 1
     }
 
+    findUserByConfirmationCode = async (code: string): Promise<UserFullViewModel | null> => {
+        let user = await userCollection.findOne({"emailConfirmation.confirmationCode": code});
+        return user ? mappedUserDbToUserView.viewFull(user) : null;
+    }
+    updateEmailConfirmation = async (confirmationData: Partial<EmailConfirmationDbType>, userId: string): Promise<boolean> => {
+            let setOperation: any = {};
+            if (confirmationData.hasOwnProperty('isConfirmed')) {
+                setOperation['emailConfirmation.isConfirmed'] = confirmationData.isConfirmed;
+            }
+            if (confirmationData.hasOwnProperty('confirmationCode')) {
+                setOperation ['emailConfirmation.confirmationCode'] = confirmationData.confirmationCode;
+            }
+            if (confirmationData.hasOwnProperty('expirationDate')) {
+                setOperation ['emailConfirmation.expirationDate'] = confirmationData.expirationDate;
+            }
+            let command = await userCollection.updateOne(
+                {_id: new ObjectId(userId)},
+                {
+                    $set: setOperation
+                })
+            return command.matchedCount > 1;
+
+    }
 }
+
 

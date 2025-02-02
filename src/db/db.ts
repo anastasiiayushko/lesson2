@@ -4,6 +4,7 @@ import {SETTINGS} from "../settings";
 import {PostSchemaType} from "./types/db-post-type";
 import {UserSchemaType} from "./types/db-user-type";
 import {CommentSchemaType} from "./types/db-comments-type";
+import {TokenBlacklistSchemaType} from "./types/db-token-black-list-type";
 
 
 export const resetDB = async (): Promise<void> => {
@@ -11,6 +12,7 @@ export const resetDB = async (): Promise<void> => {
     await postCollection.drop();
     await userCollection.drop();
     await commentCollection.drop();
+    await tokenBlackListCollection.drop();
 }
 
 
@@ -22,6 +24,7 @@ export const blogCollection: Collection<BlogSchemaType> = db.collection<BlogSche
 export const postCollection: Collection<PostSchemaType> = db.collection<PostSchemaType>(SETTINGS.DB_COLLECTION_NAME.POSTS);
 export const userCollection: Collection<UserSchemaType> = db.collection<UserSchemaType>(SETTINGS.DB_COLLECTION_NAME.USERS);
 export const commentCollection: Collection<CommentSchemaType> = db.collection<CommentSchemaType>(SETTINGS.DB_COLLECTION_NAME.COMMENTS);
+export const tokenBlackListCollection: Collection<TokenBlacklistSchemaType> = db.collection<TokenBlacklistSchemaType>(SETTINGS.DB_COLLECTION_NAME.TOKEN_BLACK_LIST);
 
 export const connectionDB = async (): Promise<boolean> => {
     try {

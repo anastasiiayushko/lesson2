@@ -5,7 +5,8 @@ export type UserSchemaType = {
     login: string,
     email: string,
     createdAt: string,
-    password: string
+    password: string,
+    emailConfirmation: EmailConfirmationDbType
 }
 
 export type UserSchemaInputType = {
@@ -13,4 +14,11 @@ export type UserSchemaInputType = {
     email: string, // 	 pattern: ^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$ example: example@example.com must be unique
     password: string, // maxLength: 20 minLength: 6
     createdAt: string,
+    emailConfirmation: EmailConfirmationDbType
+}
+
+export type EmailConfirmationDbType = {
+    confirmationCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
 }

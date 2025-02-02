@@ -6,10 +6,12 @@ import {postRouter} from "./features/post/post.router";
 import userRouter from "./features/user/user.router";
 import authRouter from "./features/auth/auth.router";
 import commentRouter from "./features/comment/comments.router";
+import cookieParser from "cookie-parser";
 
 export const app = express();
 
 app.use(express.json())
+app.use(cookieParser())
 
 app.use(SETTINGS.PATH.BLOGS, blogRouter);
 app.use(SETTINGS.PATH.POSTS, postRouter);

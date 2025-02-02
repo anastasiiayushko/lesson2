@@ -2,7 +2,8 @@ import request, {Response} from "supertest";
 import {app} from "../../src/app";
 import {SETTINGS} from "../../src/settings";
 import {BlogSchemaType} from "../../src/db/types/db-blog-type";
-import {UserAuthMeModelViewType} from "../../src/types/input-output-types/user-types";
+import {UserAuthMeModelViewType, UserInputModel} from "../../src/types/input-output-types/user-types";
+import {ApiErrorResultType} from "../../src/types/output-error-types";
 
 const URL = SETTINGS.PATH.AUTH;
 
@@ -16,7 +17,16 @@ export const authRequests = {
     },
     me: async (blogEntry: BlogSchemaType[]): ResponseBodySuperTest<UserAuthMeModelViewType> => {
         return await request(app).post(URL + '/me').send(blogEntry)
-
     },
+    authRegistration: async (userInput: UserInputModel): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/registration').send(userInput)
+    },
+    authEmailConfirmed: async (code: string): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/registration-confirmation').send({code: code})
+    },
+    authEmailResending: async (email: string): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/registration-email-resending').send({email: email})
+    },
+
 
 }

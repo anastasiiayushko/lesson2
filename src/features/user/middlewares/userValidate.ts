@@ -20,5 +20,5 @@ const passwordValidate = body('password')
 
 
 
-export const userValidate = [loginValidate, emailValidate, passwordValidate]
+export const userValidateRegistration = [loginValidate, emailValidate, passwordValidate]
 
