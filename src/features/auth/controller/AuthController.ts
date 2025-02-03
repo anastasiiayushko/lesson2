@@ -9,6 +9,9 @@ import {UserInputModel} from "../../../types/input-output-types/user-types";
 import {ApiErrorResultType} from "../../../types/output-error-types";
 import {SETTINGS} from "../../../settings";
 import {TokenBlackListService} from "../../tokenBlackList/service/tokenBlackListService";
+import jwt from "jsonwebtoken";
+import {randomUUID} from "crypto";
+import {DeviceSessionsService} from "../../security/service/DeviceSessionsService";
 
 type LoginInputType = {
     loginOrEmail: string, password: string
@@ -19,32 +22,44 @@ export class AuthController {
     private readonly userQueryRepository: UserQueryRepository;
     private readonly authRegService: AuthRegistrationService;
     private readonly tokenBlackListService: TokenBlackListService;
+    private readonly deviceSessionsService: DeviceSessionsService;
 
     constructor() {
         this.tokenBlackListService = new TokenBlackListService();
         this.userService = new UserService();
         this.userQueryRepository = new UserQueryRepository();
         this.authRegService = new AuthRegistrationService(new AuthRegSendEmailAdapter());
+        this.deviceSessionsService = new DeviceSessionsService();
 
     }
 
 
     loginInSystem = async (req: Request<{}, {}, LoginInputType>, res: Response<any>) => {
+        let ipAgent = req.headers['x-forwarded-for'] as string;
         let refresh = req.cookies.refreshToken;
+        let refreshDecode: null | {userId: string, deviceId: string} = null;
         let response = await this.userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
-        if (refresh) {
-            await this.tokenBlackListService.setToken(refresh)
-        }
+
         if (response.status !== StatusCode.OK_200 || !response.data) {
             res.sendStatus(StatusCode.UNAUTHORIZED_401);
             return;
         }
 
-        let accessToken = await jwtService.createToken(response.data.userId, SETTINGS.JWT_AT_SECRET, SETTINGS.JWT_ACCESS_TIME);
-        let refreshToken = await jwtService.createToken(response.data.userId, SETTINGS.JWT_RT_SECRET, SETTINGS.JWT_REFRESH_TIME);
 
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true,})
-        res.status(StatusCode.OK_200).json({accessToken: accessToken});
+
+        if(refresh){
+            refreshDecode = await jwtService.verifyToken(refresh, SETTINGS.JWT_RT_SECRET);
+        }
+
+       let device = await this.deviceSessionsService.addDevice(ipAgent, 'chrome', response.data.userId)
+        if(!device.data){
+            res.sendStatus(StatusCode.UNAUTHORIZED_401);
+            return
+        }
+
+
+        res.cookie('refreshToken', device.data.refreshToken, {httpOnly: true, secure: true,})
+        res.status(StatusCode.OK_200).json({accessToken: device.data.accessToken});
 
 
     }

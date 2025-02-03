@@ -15,7 +15,8 @@ enum SettingsDBCollection {
     posts = "posts",
     users = "users",
     comments = "comments",
-    tokenBlackList ="tokenBlackLists"
+    tokenBlackList ="tokenBlackLists",
+    securityDevices ="securityDevices"
 }
 
 
@@ -35,6 +36,7 @@ export const SETTINGS = {
         USERS: SettingsDBCollection.users,
         COMMENTS: SettingsDBCollection.comments,
         TOKEN_BLACK_LIST: SettingsDBCollection.tokenBlackList,
+        DEVICE_SESSIONS: SettingsDBCollection.securityDevices
     },
     ADMIN: process.env.ADMIN || 'admin:qwerty',
     MONGO_URL: process.env.MONGO_URL || "mongodb://localhost:27017",

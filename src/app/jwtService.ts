@@ -1,11 +1,11 @@
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 
 
 
 export const jwtService = {
 
-    async createToken(userId: string, secret:string, expiresIn:string): Promise<string> {
-        return jwt.sign({userId}, secret, {expiresIn: expiresIn})
+    async createToken(userId: string, deviceId: string, secret:string, expiresIn:string): Promise<string> {
+        return jwt.sign({userId, deviceId}, secret, {expiresIn: expiresIn})
     },
     async decodeToken(token: string): Promise<any> {
         try {
@@ -15,9 +15,9 @@ export const jwtService = {
             return null;
         }
     },
-    async verifyToken(token: string, secret:string): Promise<{ userId: string } | null> {
+    async verifyToken(token: string, secret:string): Promise<{ userId: string, deviceId:string } | null> {
         try {
-            return  jwt.verify(token, secret) as { userId: string };
+            return  jwt.verify(token, secret) as { userId: string, deviceId: string };
         } catch (error) {
             console.error("Token verify some error");
             return null;
