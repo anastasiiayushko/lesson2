@@ -22,6 +22,7 @@ describe('Auth login', () => {
 
     it('Should be return 200 in correct login and password', async () => {
         let loginRes = await authRequests.login(userInSystem.login, userInSystem.password)
+
         expect(loginRes.status).toBe(StatusCode.OK_200)
         expect(loginRes.body.accessToken).toEqual(expect.any(String));
 

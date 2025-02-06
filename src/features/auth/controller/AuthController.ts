@@ -11,7 +11,7 @@ import {SETTINGS} from "../../../settings";
 import {TokenBlackListService} from "../../tokenBlackList/service/tokenBlackListService";
 import jwt from "jsonwebtoken";
 import {randomUUID} from "crypto";
-import {DeviceSessionsService} from "../../security/service/DeviceSessionsService";
+import {DeviceSessionsService} from "../../sessions/service/DeviceSessionsService";
 
 type LoginInputType = {
     loginOrEmail: string, password: string
@@ -35,32 +35,32 @@ export class AuthController {
 
 
     loginInSystem = async (req: Request<{}, {}, LoginInputType>, res: Response<any>) => {
-        let ipAgent = req.headers['x-forwarded-for'] as string;
-        let refresh = req.cookies.refreshToken;
-        let refreshDecode: null | {userId: string, deviceId: string} = null;
-        let response = await this.userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
+        try {
+            const ipExtractor = req.headers['x-forwarded-for']
+                ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
+                : req.socket.remoteAddress;
+            const userAgent = req.headers['user-agent']
+            //::TODO какой код ошибки должен быть 400 || 403
+            if (!ipExtractor) {
+                res.sendStatus(StatusCode.BAD_REQUEST_400);
+                return;
+            }
+            let resultUser = await this.userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
 
-        if (response.status !== StatusCode.OK_200 || !response.data) {
-            res.sendStatus(StatusCode.UNAUTHORIZED_401);
-            return;
+            if (resultUser.status !== StatusCode.OK_200 || !resultUser.data) {
+                res.sendStatus(StatusCode.UNAUTHORIZED_401);
+                return;
+            }
+
+            let resultDeviceSession = await this.deviceSessionsService.addDevice(ipExtractor, userAgent!, resultUser.data.userId)
+
+            res.cookie('refreshToken', resultDeviceSession.data.refreshToken, {httpOnly: true, secure: true,})
+            res.status(StatusCode.OK_200).json({accessToken: resultDeviceSession.data.accessToken});
+
+        } catch (e) {
+            console.error(e);
+            res.sendStatus(StatusCode.SERVER_ERROR);
         }
-
-
-
-        if(refresh){
-            refreshDecode = await jwtService.verifyToken(refresh, SETTINGS.JWT_RT_SECRET);
-        }
-
-       let device = await this.deviceSessionsService.addDevice(ipAgent, 'chrome', response.data.userId)
-        if(!device.data){
-            res.sendStatus(StatusCode.UNAUTHORIZED_401);
-            return
-        }
-
-
-        res.cookie('refreshToken', device.data.refreshToken, {httpOnly: true, secure: true,})
-        res.status(StatusCode.OK_200).json({accessToken: device.data.accessToken});
-
 
     }
     authMe = async (req: Request<{}, {}, LoginInputType>, res: Response<any>) => {
@@ -117,7 +117,7 @@ export class AuthController {
         }
         res.status(StatusCode.NO_CONTENT_204).send();
     }
-    refreshToken = async (req:Request, res:Response) => {
+    refreshToken = async (req: Request, res: Response) => {
         try {
             let refresh = req.cookies.refreshToken;
             if (!refresh) {
@@ -125,7 +125,8 @@ export class AuthController {
                 return;
             }
 
-            let result = await this.tokenBlackListService.authenticateRefreshToken(refresh);
+            let result = await this.deviceSessionsService.updateDevice(refresh);
+            // let result = await this.tokenBlackListService.authenticateRefreshToken(refresh);
             if (!result.data) {
                 res.status(StatusCode.UNAUTHORIZED_401).send();
                 return;
@@ -136,7 +137,7 @@ export class AuthController {
             res.status(StatusCode.UNAUTHORIZED_401).send();
         }
     }
-    logout = async (req:Request, res:Response) => {
+    logout = async (req: Request, res: Response) => {
         let refresh = req.cookies.refreshToken;
         let isHasTokenBlack = await this.tokenBlackListService.findToken(refresh);
         if (isHasTokenBlack) {

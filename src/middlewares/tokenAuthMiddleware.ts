@@ -34,6 +34,7 @@ export const tokenAuthMiddleware = async (req: Request, res: Response, next: Nex
 
         if(isHasTokenBlack || !decode){
             req.userId = null;
+
             res.status(StatusCode.UNAUTHORIZED_401).send()
             return;
         }
