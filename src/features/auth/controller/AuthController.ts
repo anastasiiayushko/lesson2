@@ -1,16 +1,11 @@
 import {Request, Response} from "express";
 import {UserService} from "../../user/service/UserService";
 import {StatusCode} from "../../../types/status-code-types";
-import {jwtService} from "../../../app/jwtService";
 import {UserQueryRepository} from "../../user/dal/UserQueryRepository";
 import {AuthRegSendEmailAdapter} from "../adapter/AuthRegSendEmailAdapter";
 import {AuthRegistrationService} from "../core/service/AuthRegistrationService";
 import {UserInputModel} from "../../../types/input-output-types/user-types";
 import {ApiErrorResultType} from "../../../types/output-error-types";
-import {SETTINGS} from "../../../settings";
-import {TokenBlackListService} from "../../tokenBlackList/service/tokenBlackListService";
-import jwt from "jsonwebtoken";
-import {randomUUID} from "crypto";
 import {DeviceSessionsService} from "../../sessions/service/DeviceSessionsService";
 
 type LoginInputType = {
@@ -21,38 +16,53 @@ export class AuthController {
     private readonly userService: UserService;
     private readonly userQueryRepository: UserQueryRepository;
     private readonly authRegService: AuthRegistrationService;
-    private readonly tokenBlackListService: TokenBlackListService;
     private readonly deviceSessionsService: DeviceSessionsService;
 
     constructor() {
-        this.tokenBlackListService = new TokenBlackListService();
         this.userService = new UserService();
         this.userQueryRepository = new UserQueryRepository();
         this.authRegService = new AuthRegistrationService(new AuthRegSendEmailAdapter());
         this.deviceSessionsService = new DeviceSessionsService();
 
+        this.loginInSystem = this.loginInSystem.bind(this);
+        this.authMe = this.authMe.bind(this);
+        this.authRegistration = this.authRegistration.bind(this);
+        this.authEmailConfirmed = this.authEmailConfirmed.bind(this);
+        this.authEmailResending = this.authEmailResending.bind(this);
+        this.refreshToken = this.refreshToken.bind(this);
+        this.logout = this.logout.bind(this);
+        this.getMetaAgent = this.getMetaAgent.bind(this);
+
     }
 
+    private getMetaAgent(req: Request): { ip: string | undefined, userAgent: string } {
+        const ip = req.headers['x-forwarded-for']
+            ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
+            : req.socket.remoteAddress;
+        const userAgent = req.headers['user-agent'] || 'incognita';
 
-    loginInSystem = async (req: Request<{}, {}, LoginInputType>, res: Response<any>) => {
+
+        return {
+            ip: ip, userAgent: userAgent,
+        }
+    }
+
+    async loginInSystem(req: Request<{}, {}, LoginInputType>, res: Response<any>) {
         try {
-            const ipExtractor = req.headers['x-forwarded-for']
-                ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
-                : req.socket.remoteAddress;
-            const userAgent = req.headers['user-agent']
-            //::TODO какой код ошибки должен быть 400 || 403
-            if (!ipExtractor) {
-                res.sendStatus(StatusCode.BAD_REQUEST_400);
-                return;
-            }
-            let resultUser = await this.userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
+            const meteHeader = this.getMetaAgent(req);
 
+            if (!meteHeader.ip) {
+                res.sendStatus(StatusCode.BAD_REQUEST_400);
+                return
+            }
+            const resultUser = await this.userService.checkCredentialsUser(req.body.loginOrEmail, req.body.password);
             if (resultUser.status !== StatusCode.OK_200 || !resultUser.data) {
                 res.sendStatus(StatusCode.UNAUTHORIZED_401);
                 return;
             }
+            const userId = resultUser.data.userId
 
-            let resultDeviceSession = await this.deviceSessionsService.addDevice(ipExtractor, userAgent!, resultUser.data.userId)
+            let resultDeviceSession = await this.deviceSessionsService.addDevice(meteHeader.ip, meteHeader.userAgent, userId)
 
             res.cookie('refreshToken', resultDeviceSession.data.refreshToken, {httpOnly: true, secure: true,})
             res.status(StatusCode.OK_200).json({accessToken: resultDeviceSession.data.accessToken});
@@ -63,7 +73,8 @@ export class AuthController {
         }
 
     }
-    authMe = async (req: Request<{}, {}, LoginInputType>, res: Response<any>) => {
+
+    public async authMe(req: Request<{}, {}, LoginInputType>, res: Response<any>) {
         let userId = req.userId;
         if (!userId) {
             res.sendStatus(StatusCode.UNAUTHORIZED_401);
@@ -78,8 +89,8 @@ export class AuthController {
 
     }
 
-    authRegistration = async (req: Request<{}, {}, UserInputModel>,
-                              res: Response<ApiErrorResultType>) => {
+    public  async authRegistration(req: Request<{}, {}, UserInputModel>,
+                           res: Response<ApiErrorResultType>) {
         let userInput = req.body;
         let result = await this.authRegService.registration(userInput);
         if (result.extensions.length) {
@@ -91,7 +102,7 @@ export class AuthController {
         res.sendStatus(StatusCode.NO_CONTENT_204);
     }
 
-    authEmailConfirmed = async (req: Request<{}, {}, { code: string }>, res: Response<ApiErrorResultType>) => {
+    public async authEmailConfirmed(req: Request<{}, {}, { code: string }>, res: Response<ApiErrorResultType>) {
         let code = req.body.code;
 
         let result = await this.authRegService.registrationConfirmed(code);
@@ -104,7 +115,7 @@ export class AuthController {
 
     }
 
-    authEmailResending = async (req: Request<{}, {}, { email: string }>, res: Response<ApiErrorResultType>) => {
+    public async authEmailResending(req: Request<{}, {}, { email: string }>, res: Response<ApiErrorResultType>) {
         let email = req.body.email;
         let result = await this.authRegService.registrationEmailResending(email);
         if (result.extensions.length) {
@@ -117,16 +128,27 @@ export class AuthController {
         }
         res.status(StatusCode.NO_CONTENT_204).send();
     }
-    refreshToken = async (req: Request, res: Response) => {
+
+    public  async refreshToken(req: Request, res: Response) {
         try {
-            let refresh = req.cookies.refreshToken;
-            if (!refresh) {
-                res.status(StatusCode.UNAUTHORIZED_401).send();
+            const meteHeader = this.getMetaAgent(req);
+
+            if (!meteHeader.ip) {
+                res.sendStatus(StatusCode.BAD_REQUEST_400);
                 return;
             }
+            const userId = req!.userId as string;
+            const deviceSessionId = req!.deviceSessionId as string;
+            const deviceId = req!.deviceId as string;
 
-            let result = await this.deviceSessionsService.updateDevice(refresh);
-            // let result = await this.tokenBlackListService.authenticateRefreshToken(refresh);
+            let result = await this.deviceSessionsService.updateDevice({
+                userId,
+                deviceSessionId,
+                deviceId,
+                ip: meteHeader.ip,
+                userAgent: meteHeader.userAgent
+            });
+
             if (!result.data) {
                 res.status(StatusCode.UNAUTHORIZED_401).send();
                 return;
@@ -137,20 +159,12 @@ export class AuthController {
             res.status(StatusCode.UNAUTHORIZED_401).send();
         }
     }
-    logout = async (req: Request, res: Response) => {
-        let refresh = req.cookies.refreshToken;
-        let isHasTokenBlack = await this.tokenBlackListService.findToken(refresh);
-        if (isHasTokenBlack) {
-            res.status(StatusCode.UNAUTHORIZED_401).send();
-            return;
-        }
-        let decode = await jwtService.verifyToken(refresh, SETTINGS.JWT_RT_SECRET);
-        if (!decode) {
-            res.status(StatusCode.UNAUTHORIZED_401).send();
-            return;
-        }
 
-        await this.tokenBlackListService.setToken(refresh);
+  public  async logout(req: Request, res: Response) {
+        const userId = req.userId as string;
+        const deviceId = req.deviceId as string;
+        await this.deviceSessionsService.deleteByDeviceId(deviceId, userId);
+        res.clearCookie('refreshToken');
         res.status(StatusCode.NO_CONTENT_204).send();
     }
 

@@ -65,7 +65,7 @@ describe('Comment create', () => {
 
     it("Should return 401 if no token is provided", async () => {
         await authRequests.login(userNika.login, userNika.password)
-        let token = await jwtService.createToken(new ObjectId().toString())
+        let token = await jwtService.createAccessToken(new ObjectId().toString())
 
         let commentTargetPost = postEntry[0];
         let commentBody = generateRandomStringForTest(50)

@@ -8,6 +8,7 @@ enum SettingsPath {
     auth = "/auth",
     testing = "/testing",
     comments = "/comments",
+    security = "/security",
 }
 
 enum SettingsDBCollection {
@@ -16,7 +17,8 @@ enum SettingsDBCollection {
     users = "users",
     comments = "comments",
     tokenBlackList ="tokenBlackLists",
-    securityDevices ="securityDevices"
+    securityDevices ="securityDevices",
+    throttlingRate = "throttlingRates",
 }
 
 
@@ -29,6 +31,7 @@ export const SETTINGS = {
         AUTH: SettingsPath.auth,
         COMMENTS: SettingsPath.comments,
         TESTING: SettingsPath.testing,
+        SECURITY: SettingsPath.security,
     },
     DB_COLLECTION_NAME: {
         BLOGS: SettingsDBCollection.blogs,
@@ -36,7 +39,8 @@ export const SETTINGS = {
         USERS: SettingsDBCollection.users,
         COMMENTS: SettingsDBCollection.comments,
         TOKEN_BLACK_LIST: SettingsDBCollection.tokenBlackList,
-        DEVICE_SESSIONS: SettingsDBCollection.securityDevices
+        DEVICE_SESSIONS: SettingsDBCollection.securityDevices,
+        THROTTLING_RATE: SettingsDBCollection.throttlingRate,
     },
     ADMIN: process.env.ADMIN || 'admin:qwerty',
     MONGO_URL: process.env.MONGO_URL || "mongodb://localhost:27017",
@@ -45,8 +49,8 @@ export const SETTINGS = {
     AUTH_GMAIL_PASS: "icjscncpvkvbixrr",
     AUTH_EXPIRATION_DATE_HOURS : 0,
     AUTH_EXPIRATION_DATE_MIN : 5,
-    JWT_ACCESS_TIME: '20s',
-    JWT_REFRESH_TIME: '20s',
-    JWT_AT_SECRET: '123456789',
-    JWT_RT_SECRET: '123456789'
+    JWT_ACCESS_TIME: '20m',
+    JWT_REFRESH_TIME: '1h',
+    JWT_AT_SECRET: process.env.JWT_AT_SECRET || '123456789',
+    JWT_RT_SECRET: process.env.JWT_RT_SECRET || '123456789'
 }

@@ -21,8 +21,8 @@ export type DbDeviceSessionInputType = {
 
 export type DbDeviceSessionUpdateInputType = {
     lastActiveDate: Date,
-    deviceId: string,
     expirationDate: Date,
-    userId: string,
+    ip: string,
+    title: string,
 }
 

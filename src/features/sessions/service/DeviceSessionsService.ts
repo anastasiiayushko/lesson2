@@ -1,4 +1,3 @@
-import {DeviceSessionUpdateType,} from "../type/input-output-device-sessions";
 import {DeviceSessionsRepository} from "../repository/DeviceSessionsRepository";
 import {ServiceResponseType} from "../../../types/service-response-type";
 import {StatusCode} from "../../../types/status-code-types";
@@ -9,15 +8,23 @@ import {jwtService} from "../../../app/jwtService";
 type AddingDeviceSessionResult = Promise<ServiceResponseType<{ accessToken: string, refreshToken: string }>>
 type UpdateDeviceSessionResult = Promise<ServiceResponseType<{ accessToken: string, refreshToken: string } | null>>
 
+type InputUpdateDeviceSessionType = {
+    userId: string, deviceSessionId: string, deviceId: string, ip: string, userAgent: string
+}
+
 export class DeviceSessionsService {
     private deviceSessionRepository: DeviceSessionsRepository;
 
     constructor() {
         this.deviceSessionRepository = new DeviceSessionsRepository();
+
+        this.verifyRefreshToken = this.verifyRefreshToken.bind(this);
+        this.deleteByDeviceId = this.deleteByDeviceId.bind(this);
+        this.deleteAllOtherDeviceSessions = this.deleteAllOtherDeviceSessions.bind(this);
     }
 
 
-    async getSessionTokensAndMeta(userId: string, deviceId: string): Promise<{
+    private async createTokenPairWithMetadata(userId: string, deviceId: string,): Promise<{
         accessToken: string,
         refreshToken: string,
         lastActiveDate: Date,
@@ -39,13 +46,7 @@ export class DeviceSessionsService {
     async addDevice(ip: string, userAgent: string, userId: string): AddingDeviceSessionResult {
 
         const deviceId = randomUUID();
-        // const accessToken = await jwtService.createAccessToken(userId);
-        // const refreshToken = await jwtService.createRefreshToken(userId, deviceId);
-        //
-        // const decode = await jwtService.decodeToken(refreshToken);
-        // const lastActiveDate = new Date(decode.iat * 1000);
-        // const expirationDate = new Date(decode.exp * 1000);
-        const sessionMeta = await this.getSessionTokensAndMeta(userId, deviceId);
+        const sessionMeta = await this.createTokenPairWithMetadata(userId, deviceId);
 
         const newDeviceSession = {
             ip: ip,
@@ -67,27 +68,24 @@ export class DeviceSessionsService {
 
     }
 
-    updateDevice = async (token: string): UpdateDeviceSessionResult => {
+    // adding mid tokenRefreshAuthToken
+    updateDevice = async ({
+                              userId,
+                              // deviceSessionId,
+                              deviceId,
+                              ip,
+                              userAgent
+                          }: InputUpdateDeviceSessionType): UpdateDeviceSessionResult => {
 
-        const decode = await jwtService.decodeToken(token);
-        if (!decode) {
-            return {
-                status: StatusCode.BAD_REQUEST_400,
-                data: null,
-                extensions: []
-            }
-        }
-        const {userId, deviceId} = decode;
-        const sessionMeta = await this.getSessionTokensAndMeta(userId, deviceId);
-
-
-        await this.deviceSessionRepository.updateDeviceSession(
+        const sessionMeta = await this.createTokenPairWithMetadata(userId, deviceId);
+        await this.deviceSessionRepository.updateDeviceSessionById(
+            {userId: userId, deviceId: deviceId},
             {
-                userId: userId,
-                deviceId: deviceId,
                 expirationDate: sessionMeta.expirationDate,
-                lastActiveDate: sessionMeta.lastActiveDate
-            },
+                lastActiveDate: sessionMeta.lastActiveDate,
+                ip: ip,
+                title: userAgent
+            }
         )
         return {
             status: StatusCode.NO_CONTENT_204,
@@ -99,4 +97,78 @@ export class DeviceSessionsService {
         }
 
     }
+    deleteSessionDeviceById = async (deviceSessionId: string): Promise<ServiceResponseType<boolean>> => {
+        let result = await this.deviceSessionRepository.deleteSessionDeviceById(deviceSessionId);
+
+        return {
+            status: result ? StatusCode.OK_200 : StatusCode.UNAUTHORIZED_401,
+            data: result,
+            extensions: []
+        }
+    }
+
+
+    public async verifyRefreshToken(token: string): Promise<ServiceResponseType<{
+        userId: string,
+        deviceSessionId: string, deviceId: string
+    } | null>> {
+        const verify = await jwtService.verifyRefreshToken(token);
+        if (!verify) {
+            return {
+                status: StatusCode.UNAUTHORIZED_401,
+                data: null,
+                extensions: []
+            }
+        }
+        const lastActiveDate = new Date(verify!.iat * 1000);
+        let result = await this.deviceSessionRepository.findDeviceByMeta(verify.deviceId, verify.userId, lastActiveDate);
+
+        return {
+            status: result ? StatusCode.OK_200 : StatusCode.UNAUTHORIZED_401,
+            data: result ? {
+                userId: verify.userId,
+                deviceSessionId: result._id.toString(),
+                deviceId: result.deviceId
+            } : null,
+            extensions: []
+        }
+    }
+
+    public async deleteByDeviceId(deviceId: string, userIdInSystem: string): Promise<ServiceResponseType<null>> {
+        const device = await this.deviceSessionRepository.findDeviceSessionByDeviceId(deviceId);
+        if (!device) {
+            return {
+                status: StatusCode.NOT_FOUND_404,
+                data: null,
+                extensions: []
+            }
+        }
+        if (device.userId !== userIdInSystem) {
+            return {
+                status: StatusCode.FORBIDDEN_403,
+                data: null,
+                extensions: []
+            }
+        }
+
+        await this.deviceSessionRepository.removeByDeviceId(deviceId, userIdInSystem);
+
+        return {
+            status: StatusCode.NO_CONTENT_204,
+            data: null,
+            extensions: []
+        }
+    }
+
+    public async deleteAllOtherDeviceSessions(userId: string, deviceId: string): Promise<ServiceResponseType<null>> {
+
+        await this.deviceSessionRepository.removeOtherDeviceSessionsByUserId(userId, deviceId);
+        return {
+            status: StatusCode.NO_CONTENT_204,
+            data: null, extensions: []
+        }
+
+    }
+
 }
+

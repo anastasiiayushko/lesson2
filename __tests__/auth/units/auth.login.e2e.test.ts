@@ -3,7 +3,7 @@ import {userRequests} from "../../users/userRequests";
 import {authRequests} from "../authRequests";
 import {StatusCode} from "../../../src/types/status-code-types";
 import {ApiErrorResultType} from "../../../src/types/output-error-types";
-import {getAuthHeaderBasicTest} from "../../helpers/testUtils";
+import {getAuthHeaderBasicTest, getRefreshTokenByHeadersCookies} from "../../helpers/testUtils";
 import {SETTINGS} from "../../../src/settings";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
@@ -25,6 +25,9 @@ describe('Auth login', () => {
 
         expect(loginRes.status).toBe(StatusCode.OK_200)
         expect(loginRes.body.accessToken).toEqual(expect.any(String));
+        const cookies = loginRes.headers['set-cookie'] as string[] | string;
+        const refreshToken = getRefreshTokenByHeadersCookies(Array.isArray(cookies) ? cookies : [cookies]);
+        expect(refreshToken).toBeDefined();
 
     })
 

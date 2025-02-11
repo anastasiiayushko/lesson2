@@ -15,6 +15,13 @@ export const authRequests = {
         return res;
 
     },
+    loginWithUserAgent: async (loginOrEmail: string, password: string, userAgent: string): ResponseBodySuperTest<{
+        accessToken: string
+    } | null> => {
+        let res = await request(app).post(URL + '/login').set('User-Agent', userAgent).send({loginOrEmail, password});
+        return res;
+
+    },
     me: async (blogEntry: BlogSchemaType[]): ResponseBodySuperTest<UserAuthMeModelViewType> => {
         return await request(app).post(URL + '/me').send(blogEntry)
     },
@@ -28,5 +35,8 @@ export const authRequests = {
         return await request(app).post(URL + '/registration-email-resending').send({email: email})
     },
 
+    refreshToken: async (cookies: string[]): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/refresh-token').set('Cookie', cookies.join('; '))
+    }
 
 }

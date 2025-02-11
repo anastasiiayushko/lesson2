@@ -27,12 +27,24 @@ export const generateRandomStringForTest = (lengthSymbols: number): string => {
 
 export const sortedBySortKeyAndDirectionTest =
     <T>(data: T[], sortBy: keyof T, direction: SortDirectionsType) => {
-    return data.sort((a, b) => {
-        const valueA = String(a[sortBy]).toLowerCase(); // Приводим к строке и в нижний регистр
-        const valueB = String(b[sortBy]).toLowerCase();
+        return data.sort((a, b) => {
+            const valueA = String(a[sortBy]).toLowerCase(); // Приводим к строке и в нижний регистр
+            const valueB = String(b[sortBy]).toLowerCase();
 
-        if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-        if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
+            if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+            if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+export const getRefreshTokenByHeadersCookies =  (cookies: string[]) => {
+    for (let i = 0; i < cookies.length; i++) {
+        const cookiesString = cookies[i];
+        const name = cookiesString.split(';')[i].split('=')[0];
+        const value = cookiesString.split(';')[i].split('=')[1] as string;
+        if (name === "refreshToken") {
+            return value
+        }
+    }
+    return null;
 }

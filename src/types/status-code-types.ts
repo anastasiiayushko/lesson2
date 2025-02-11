@@ -8,4 +8,5 @@ export enum StatusCode {
     FORBIDDEN_403 = 403,
     NOT_FOUND__404 = 404,
     SERVER_ERROR = 500,
+    MANY_REQUEST_429 = 429
 }

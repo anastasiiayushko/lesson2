@@ -3,7 +3,7 @@ import {SETTINGS} from "../settings";
 
 type VerifyTokenAccessResultT = {userId:string} ;
 type VerifyTokenRefreshResultT = {
-    userId: string; deviceId: string
+    userId: string; deviceId: string, iat: number
 }
 
 export const jwtService = {
