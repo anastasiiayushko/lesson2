@@ -58,5 +58,19 @@ describe('Auth login', () => {
         })
 
     })
+
+    it('Should return 429 if more than 5 requests in 10 seconds', async () => {
+
+        for (let i = 0; i < 5; i++) {
+            await authRequests.login("test", "test123456"); // Или другой эндпоинт
+        }
+
+        // Делаем еще один запрос, чтобы превысить лимит
+        const res = await authRequests.login("test", "test123456");
+
+        // Проверяем, что статус 429 (слишком много запросов)
+        expect(res.status).toBe(StatusCode.MANY_REQUEST_429);
+    });
+
 })
 

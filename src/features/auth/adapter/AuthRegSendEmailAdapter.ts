@@ -16,17 +16,30 @@ export class AuthRegSendEmailAdapter implements AuthRegSendEmailPort {
         });
     }
 
-    confirmRegistration = async (emailTo: string, confirmedCode:string) => {
+    confirmRegistration = async (emailTo: string, confirmedCode: string) => {
         this.transporter.sendMail({
-                from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
-                to: emailTo, // list of receivers
-                subject: "Confirmed registration to Blogger platform ✔", // Subject line
-                html: ` <h1>Thank for your registration</h1>
+            from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
+            to: emailTo, // list of receivers
+            subject: "Confirmed registration to Blogger platform ✔", // Subject line
+            html: ` <h1>Thank for your registration</h1>
                  <p>To finish registration please follow the link below:
                      <a href='https://somesite.com/confirm-email?code=${confirmedCode}'>complete registration</a>
                  </p>`,
-            }).catch(e=>{
+        }).catch(e => {
             console.error('confirmRegistration', e.message)
+        })
+    }
+    recoveryPassword = async (emailTo: string, confirmedCode: string) => {
+        this.transporter.sendMail({
+            from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
+            to: emailTo, // list of receivers
+            subject: "Confirmed registration to Blogger platform ✔", // Subject line
+            html: `<h1>Password recovery</h1>
+       <p>To finish password recovery please follow the link below:
+          <a href='https://somesite.com/password-recovery?recoveryCode=${confirmedCode}'>recovery password</a>
+      </p>`,
+        }).catch(e => {
+            console.error('recoveryPassword', e.message)
         })
     }
 

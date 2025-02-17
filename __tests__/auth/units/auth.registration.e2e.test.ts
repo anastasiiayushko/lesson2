@@ -60,6 +60,19 @@ describe("Auth registration", () => {
             ]
         })
 
-    })
+    });
+
+    it('Should return 429 if more than 5 requests in 10 seconds', async () => {
+
+        for (let i = 0; i < 5; i++) {
+            await authRequests.authRegistration(userNika); // Или другой эндпоинт
+        }
+
+        // Делаем еще один запрос, чтобы превысить лимит
+        const res = await authRequests.authRegistration(userNika);
+
+        // Проверяем, что статус 429 (слишком много запросов)
+        expect(res.status).toBe(StatusCode.MANY_REQUEST_429);
+    });
 
 })

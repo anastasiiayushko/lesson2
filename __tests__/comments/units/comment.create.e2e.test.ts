@@ -11,6 +11,7 @@ import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
 import {ApiErrorResultType} from "../../../src/types/output-error-types";
 import {jwtService} from "../../../src/app/jwtService";
+import {throttlingRateCollection} from "../../../src/db/db";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 const userIgor = {
@@ -44,6 +45,9 @@ describe('Comment create', () => {
         await userRequests.createUser(BASIC_VALID_HEADER, userIgor);
         await testingRequests.insertBlogsAndReturn([...BLOG_DATA_WITH_ID]);
         await testingRequests.insertPostsAndReturn([...postEntry]);
+    });
+    beforeEach(async () => {
+        await throttlingRateCollection.drop();
     })
 
     it("Should return 201  success  and created resource comment", async () => {
@@ -65,11 +69,11 @@ describe('Comment create', () => {
 
     it("Should return 401 if no token is provided", async () => {
         await authRequests.login(userNika.login, userNika.password)
-        let token = await jwtService.createAccessToken(new ObjectId().toString())
+        const tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
 
-        let commentTargetPost = postEntry[0];
-        let commentBody = generateRandomStringForTest(50)
-        let commentRes = await commentRequests.createCommentByPostIdParams(token, commentTargetPost._id.toString(), commentBody);
+        const commentTargetPost = postEntry[0];
+        const commentBody = generateRandomStringForTest(50)
+        const commentRes = await commentRequests.createCommentByPostIdParams(tokenGust, commentTargetPost._id.toString(), commentBody);
         expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);
     })
 

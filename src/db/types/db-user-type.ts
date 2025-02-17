@@ -7,6 +7,7 @@ export type UserSchemaType = {
     createdAt: string,
     password: string,
     emailConfirmation: EmailConfirmationDbType
+    recoveryPasswordConfirm: RecoveryPasswordConfirmDbType,
 }
 
 export type UserSchemaInputType = {
@@ -19,6 +20,12 @@ export type UserSchemaInputType = {
 
 export type EmailConfirmationDbType = {
     confirmationCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
+}
+
+export type RecoveryPasswordConfirmDbType = {
+    recoveryCode: string;
     expirationDate: Date;
     isConfirmed: boolean;
 }

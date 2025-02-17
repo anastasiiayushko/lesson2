@@ -9,8 +9,8 @@ export const mappedUserDbToUserView = {
             email: item.email,
             password: item.password,
             createdAt: item.createdAt,
-            emailConfirmation: item.emailConfirmation
-
+            emailConfirmation: item.emailConfirmation,
+            recoveryPasswordConfirm: item.recoveryPasswordConfirm
         }
     }
 }

@@ -9,6 +9,7 @@ import {authRequests} from "../../auth/authRequests";
 import {commentRequests} from "../commentRequests";
 import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
+import {throttlingRateCollection} from "../../../src/db/db";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
@@ -56,7 +57,9 @@ describe('Comment get by id', () => {
         await testingRequests.insertBlogsAndReturn([...BLOG_DATA_WITH_ID]);
         await testingRequests.insertPostsAndReturn([...postEntry]);
     })
-
+    beforeEach(async () => {
+        await throttlingRateCollection.drop();
+    })
     it("Should return 200 and resource", async () => {
         let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
         let token = nikaLoginResult.body.accessToken;

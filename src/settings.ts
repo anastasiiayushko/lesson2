@@ -16,8 +16,8 @@ enum SettingsDBCollection {
     posts = "posts",
     users = "users",
     comments = "comments",
-    tokenBlackList ="tokenBlackLists",
-    securityDevices ="securityDevices",
+    tokenBlackList = "tokenBlackLists",
+    securityDevices = "securityDevices",
     throttlingRate = "throttlingRates",
 }
 
@@ -47,10 +47,12 @@ export const SETTINGS = {
     DATABASE_NAME: process.env.DATABASE_NAME,
     AUTH_GMAIL_USER: "dinaswebstudio2020@gmail.com",
     AUTH_GMAIL_PASS: "icjscncpvkvbixrr",
-    AUTH_EXPIRATION_DATE_HOURS : 0,
-    AUTH_EXPIRATION_DATE_MIN : 5,
-    JWT_ACCESS_TIME: '20m',
-    JWT_REFRESH_TIME: '1h',
+    AUTH_EXPIRATION_DATE_HOURS: 0,
+    AUTH_EXPIRATION_DATE_MIN: 5,
+    RECOVERY_PASSWORD_EXPIRATION_DATE_HOURS: 0,
+    RECOVERY_PASSWORD_EXPIRATION_DATE_MIN: 5,
+    JWT_ACCESS_TIME: '10m',
+    JWT_REFRESH_TIME: '20m',
     JWT_AT_SECRET: process.env.JWT_AT_SECRET || '123456789',
     JWT_RT_SECRET: process.env.JWT_RT_SECRET || '123456789'
 }

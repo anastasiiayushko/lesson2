@@ -1,5 +1,4 @@
 import {throttlingRateCollection} from "../../../db/db";
-import {DbThrottlingRateType} from "../../../db/types/db-throttling-rate-type";
 
 export class ThrottlingRateRepository {
     private db;
@@ -16,7 +15,9 @@ export class ThrottlingRateRepository {
 
     async countDocuments(ip: string, url: string,): Promise<number> {
         const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+        // console.log(`countDocuments: ${tenSecondsAgo.toISOString()}`);
         const result = await this.db.countDocuments({ip, url, date:{$gte:tenSecondsAgo}});
+        // console.log('countDocuments: ', result);
         return result;
     }
 

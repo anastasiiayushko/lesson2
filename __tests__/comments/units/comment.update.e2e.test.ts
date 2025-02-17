@@ -11,6 +11,7 @@ import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
 import {ApiErrorResultType} from "../../../src/types/output-error-types";
 import {jwtService} from "../../../src/app/jwtService";
+import {throttlingRateCollection} from "../../../src/db/db";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 const userIgor = {
@@ -63,6 +64,9 @@ describe('Comment update', () => {
         await testingRequests.insertBlogsAndReturn([...BLOG_DATA_WITH_ID]);
         await testingRequests.insertPostsAndReturn([...postEntry]);
     })
+    beforeEach(async () => {
+        await throttlingRateCollection.drop();
+    })
 
     it("Should return 403 If try edit the comment that is not your own ", async () => {
         let nikaLoginResultOwner = await authRequests.login(userNika.login, userNika.password)
@@ -93,10 +97,10 @@ describe('Comment update', () => {
         let commentTargetPost = postEntry[0];
         let commentCreateRes = await commentRequests.createCommentByPostIdParams(tokenOwner, commentTargetPost._id.toString(), commentBody);
         let comment = commentCreateRes.body;
-        let tokenGust = await jwtService.createToken(new ObjectId().toString())
+        let tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
 
         let commentRes = await commentRequests.updateComment(tokenGust, comment.id, commentBody);
-        expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);
+        expect(commentRes.status).toBe(StatusCode.FORBIDDEN_403);
     })
 
     it("Should return 400 if body content less 20", async () => {
@@ -149,13 +153,19 @@ describe('Comment update', () => {
     })
 
     it("Should return 204 success update comment", async () => {
-        let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
-        let token = nikaLoginResult.body.accessToken;
+        const nikaLoginResult = await authRequests.login(userNika.login, userNika.password);
+        expect(nikaLoginResult.status).toBe(StatusCode.OK_200);
+
+        const token = nikaLoginResult.body.accessToken;
+        expect(token).toBeDefined()
 
         let commentTargetPost = postEntry[0];
         let commentBody = generateRandomStringForTest(30);
-        let commentRes = await commentRequests.createCommentByPostIdParams(token, commentTargetPost._id.toString(), commentBody);
+        const commentRes =
+            await commentRequests.createCommentByPostIdParams(token, commentTargetPost._id.toString(), commentBody);
+
         expect(commentRes.status).toBe(StatusCode.CREATED_201);
+
 
         let commentId = commentRes.body.id;
         let commentUpdate = generateRandomStringForTest(35);

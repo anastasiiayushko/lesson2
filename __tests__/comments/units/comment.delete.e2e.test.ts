@@ -10,6 +10,7 @@ import {commentRequests} from "../commentRequests";
 import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
 import {jwtService} from "../../../src/app/jwtService";
+import {throttlingRateCollection} from "../../../src/db/db";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 const userIgor = {
@@ -62,7 +63,9 @@ describe('Comment delete', () => {
         await testingRequests.insertBlogsAndReturn([...BLOG_DATA_WITH_ID]);
         await testingRequests.insertPostsAndReturn([...postEntry]);
     })
-
+    beforeEach(async () => {
+        await throttlingRateCollection.drop();
+    })
     it("Should return 403 If try delete the comment that is not your own ", async () => {
         let nikaLoginResultOwner = await authRequests.login(userNika.login, userNika.password)
         let tokenOwner = nikaLoginResultOwner.body.accessToken;
@@ -91,7 +94,7 @@ describe('Comment delete', () => {
         let commentTargetPost = postEntry[0];
         let commentCreateRes = await commentRequests.createCommentByPostIdParams(tokenOwner, commentTargetPost._id.toString(), commentBody);
         let comment = commentCreateRes.body;
-        let tokenGust = await jwtService.createToken(new ObjectId().toString())
+        let tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
 
         let commentRes = await commentRequests.deleteComment(tokenGust, comment.id);
         expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);

@@ -17,7 +17,13 @@ export type UserFullViewModel = {
     email: string,
     createdAt: string,
     password: string,
-    emailConfirmation: EmailConfirmationViewType
+    emailConfirmation: EmailConfirmationViewType,
+    recoveryPasswordConfirm: RecoveryPasswordConfirmViewType,
+}
+export type RecoveryPasswordConfirmViewType = {
+    recoveryCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
 }
 export type EmailConfirmationViewType = {
     confirmationCode: string;

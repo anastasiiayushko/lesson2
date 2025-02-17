@@ -4,6 +4,7 @@ import {ServiceResponseType} from "../../../types/service-response-type";
 import {StatusCode} from "../../../types/status-code-types";
 import {jwtService} from "../../../app/jwtService";
 import {SETTINGS} from "../../../settings";
+import {randomUUID} from "crypto";
 
 type  ResultCheckRefreshTokenType = ServiceResponseType<{
     refreshToken: string
@@ -44,8 +45,8 @@ export class TokenBlackListService {
         }
 
         await this.tokenBlackListRepository.setToken(rToken, add(new Date(), {hours: 24}));
-        let accessToken = await jwtService.createToken(decode!.userId, SETTINGS.JWT_AT_SECRET, '1m');
-        let refreshToken = await jwtService.createToken(decode!.userId, SETTINGS.JWT_RT_SECRET, '10m');
+        let accessToken = await jwtService.createAccessToken(decode!.userId);
+        let refreshToken = await jwtService.createRefreshToken(decode!.userId, randomUUID());
 
         return {
             status: StatusCode.NO_CONTENT_204,

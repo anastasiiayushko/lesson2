@@ -7,6 +7,8 @@ import {AuthRegistrationService} from "../core/service/AuthRegistrationService";
 import {UserInputModel} from "../../../types/input-output-types/user-types";
 import {ApiErrorResultType} from "../../../types/output-error-types";
 import {DeviceSessionsService} from "../../sessions/service/DeviceSessionsService";
+import {AuthPasswordService} from "../core/service/AuthPasswordService";
+import {UserRepository} from "../../user/dal/UserRepository";
 
 type LoginInputType = {
     loginOrEmail: string, password: string
@@ -17,9 +19,11 @@ export class AuthController {
     private readonly userQueryRepository: UserQueryRepository;
     private readonly authRegService: AuthRegistrationService;
     private readonly deviceSessionsService: DeviceSessionsService;
+    authPasswordService: AuthPasswordService;
 
     constructor() {
         this.userService = new UserService();
+        this.authPasswordService = new AuthPasswordService(new UserRepository(), new AuthRegSendEmailAdapter());
         this.userQueryRepository = new UserQueryRepository();
         this.authRegService = new AuthRegistrationService(new AuthRegSendEmailAdapter());
         this.deviceSessionsService = new DeviceSessionsService();
@@ -89,8 +93,8 @@ export class AuthController {
 
     }
 
-    public  async authRegistration(req: Request<{}, {}, UserInputModel>,
-                           res: Response<ApiErrorResultType>) {
+    public async authRegistration(req: Request<{}, {}, UserInputModel>,
+                                  res: Response<ApiErrorResultType>) {
         let userInput = req.body;
         let result = await this.authRegService.registration(userInput);
         if (result.extensions.length) {
@@ -129,7 +133,7 @@ export class AuthController {
         res.status(StatusCode.NO_CONTENT_204).send();
     }
 
-    public  async refreshToken(req: Request, res: Response) {
+    public async refreshToken(req: Request, res: Response) {
         try {
             const meteHeader = this.getMetaAgent(req);
 
@@ -160,7 +164,7 @@ export class AuthController {
         }
     }
 
-  public  async logout(req: Request, res: Response) {
+    public async logout(req: Request, res: Response) {
         const userId = req.userId as string;
         const deviceId = req.deviceId as string;
         await this.deviceSessionsService.deleteByDeviceId(deviceId, userId);
@@ -168,4 +172,25 @@ export class AuthController {
         res.status(StatusCode.NO_CONTENT_204).send();
     }
 
+    public async passwordRecovery(req: Request, res: Response) {
+        try {
+            const email = req.body.email;
+            await this.authPasswordService.passwordRecovery(email);
+            res.sendStatus(StatusCode.NO_CONTENT_204);
+        } catch (e) {
+            res.sendStatus(StatusCode.NO_CONTENT_204);
+        }
+    }
+    public async updatePassword(req: Request, res: Response) {
+        try{
+            const recoveryCode = req.body.recoveryCode;
+            const password = req.body.newPassword;
+            const result = await this.authPasswordService.changePassword(password, recoveryCode);
+            console.log(result);
+            res.sendStatus(result.status);
+        }
+        catch (e) {
+
+        }
+    }
 }

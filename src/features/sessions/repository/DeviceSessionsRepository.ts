@@ -55,7 +55,6 @@ export class DeviceSessionsRepository {
     async findDeviceSessionByDeviceId(deviceId: string): Promise<DeviceCommandModel | null> {
 
         const deviceSession = await this.db.findOne({deviceId: deviceId});
-        console.log(deviceSession, 'deviceSessionId', deviceId);
         return deviceSession ? mapDbDeviceSessionToCommand(deviceSession) : null
     }
 

@@ -13,9 +13,7 @@ export const jwtService = {
     async createRefreshToken(userId: string, deviceId: string): Promise<string> {
         return jwt.sign({userId, deviceId}, SETTINGS.JWT_RT_SECRET, {expiresIn: SETTINGS.JWT_REFRESH_TIME})
     },
-    async createToken(userId: string, deviceId: string, secret:string, expiresIn:string): Promise<string> {
-        return jwt.sign({userId, deviceId}, secret, {expiresIn: expiresIn})
-    },
+
     async decodeToken(token: string): Promise<any> {
         try {
             return jwt.decode(token) ;

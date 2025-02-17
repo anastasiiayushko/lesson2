@@ -12,6 +12,11 @@ export class CreateUser {
         expirationDate: Date;
         isConfirmed: boolean;
     }
+    recoveryPasswordConfirm: {
+        recoveryCode: string | null;
+        expirationDate: Date | null;
+        isConfirmed: boolean;
+    }
 
     constructor(login: string, email: string, passwordHash: string, isConfirmed: boolean) {
         this.login = login
@@ -25,6 +30,9 @@ export class CreateUser {
             }),
             confirmationCode: randomUUID(),
             isConfirmed: isConfirmed
+        }
+        this.recoveryPasswordConfirm = {
+            recoveryCode: null, expirationDate: null, isConfirmed: false
         }
     }
 }

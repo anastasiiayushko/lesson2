@@ -12,7 +12,6 @@ export const throttlingRateLimitMiddleware =
             ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
             : req.socket.remoteAddress;
         const baseUrl = req.originalUrl;
-
         if (!ip) {
             res.sendStatus(StatusCode.BAD_REQUEST_400)
             return;
@@ -21,8 +20,9 @@ export const throttlingRateLimitMiddleware =
 
             await throttlingRateRepository.logRequest(ip, baseUrl);
             const requestsInLast10Seconds = await throttlingRateRepository.countDocuments(ip, baseUrl);
-            console.log(requestsInLast10Seconds);
+            // console.log(requestsInLast10Seconds);
             if (requestsInLast10Seconds > REQUEST_LIMIT) {
+
                 res.sendStatus(StatusCode.MANY_REQUEST_429)
                 return;
             }

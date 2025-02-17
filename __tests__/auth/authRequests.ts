@@ -37,6 +37,10 @@ export const authRequests = {
 
     refreshToken: async (cookies: string[]): ResponseBodySuperTest<ApiErrorResultType | null> => {
         return await request(app).post(URL + '/refresh-token').set('Cookie', cookies.join('; '))
+    },
+    logout: async (cookies: string[]): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/logout').set('Cookie', cookies.join('; '))
+
     }
 
 }

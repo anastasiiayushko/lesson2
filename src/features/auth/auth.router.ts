@@ -1,7 +1,12 @@
 import express from "express";
 import {AuthController} from "./controller/AuthController";
 import {tokenAuthMiddleware} from "../../middlewares/tokenAuthMiddleware";
-import {authEmailValidator, confirmCodeValidator, loginValidator} from "./middlewares/authValidate";
+import {
+    authEmailValidator,
+    confirmCodeValidator,
+    confirmRecoveryCodeValidator,
+    loginValidator, newPasswordValidate,
+} from "./middlewares/authValidate";
 import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware";
 import {userValidateRegistration} from "../user/middlewares/userValidate";
 import {tokenRefreshAuthMiddleware} from "../../middlewares/tokenRefreshAuthMiddleware";
@@ -15,9 +20,12 @@ const authController = new AuthController();
 authRouter.post('/login', throttlingRateLimitMiddleware, loginValidator, validateInputMiddleware, authController.loginInSystem);
 authRouter.get('/me', tokenAuthMiddleware, authController.authMe);
 
-authRouter.post('/registration', userValidateRegistration, validateInputMiddleware, authController.authRegistration);
-authRouter.post('/registration-confirmation', confirmCodeValidator, validateInputMiddleware, authController.authEmailConfirmed);
-authRouter.post('/registration-email-resending', authEmailValidator, validateInputMiddleware, authController.authEmailResending);
+authRouter.post('/registration', throttlingRateLimitMiddleware, userValidateRegistration, validateInputMiddleware, authController.authRegistration);
+authRouter.post('/registration-confirmation', throttlingRateLimitMiddleware, confirmCodeValidator, validateInputMiddleware, authController.authEmailConfirmed);
+authRouter.post('/registration-email-resending', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.authEmailResending);
+
+authRouter.post('/password-recovery', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.passwordRecovery.bind(authController));
+authRouter.post('/new-password', throttlingRateLimitMiddleware, confirmRecoveryCodeValidator, newPasswordValidate, validateInputMiddleware, authController.updatePassword.bind(authController));
 
 authRouter.post('/refresh-token', tokenRefreshAuthMiddleware, authController.refreshToken)
 authRouter.post('/logout', tokenRefreshAuthMiddleware, authController.logout)
