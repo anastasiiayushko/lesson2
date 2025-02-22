@@ -2,19 +2,12 @@ import {Request, Response} from 'express';
 import {DeviceSessionsService} from "../service/DeviceSessionsService";
 import {StatusCode} from "../../../types/status-code-types";
 import {DeviceSessionsQueryRepository} from "../repository/DeviceSessionsQueryRepository";
+import {injectable} from "inversify";
 
+@injectable()
 export class DeviceSessionsController {
-    private deviceSessionService: DeviceSessionsService;
-    private deviceSessionsQueryRepository: DeviceSessionsQueryRepository;
 
-    constructor() {
-        this.deviceSessionService = new DeviceSessionsService();
-        this.deviceSessionsQueryRepository = new DeviceSessionsQueryRepository();
-
-        this.deleteDeviceSessionByDeviceId = this.deleteDeviceSessionByDeviceId.bind(this);
-        this.getAllDeviceSessions = this.getAllDeviceSessions.bind(this);
-        this.deleteAllOtherDeviceSessions = this.deleteAllOtherDeviceSessions.bind(this);
-    }
+    constructor(protected deviceSessionService: DeviceSessionsService, protected deviceSessionsQueryRepository: DeviceSessionsQueryRepository) {}
 
     async getAllDeviceSessions(req: Request, res: Response) {
         try {

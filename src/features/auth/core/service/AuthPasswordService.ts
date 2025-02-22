@@ -6,14 +6,14 @@ import {add} from "date-fns";
 import {SETTINGS} from "../../../../settings";
 import {AuthRegSendEmailPort} from "../port/AuthRegSendEmailPort";
 import bcrypt from "bcrypt";
+import {injectable} from "inversify";
 
-type PasswordRecoveryInputType = {
-    email: string,
-}
 
+@injectable()
 export class AuthPasswordService {
 
-    constructor(public userRepository: UserRepository, public authSendEmailAdapter: AuthRegSendEmailPort) {
+    constructor(protected userRepository: UserRepository,
+                protected authSendEmailAdapter: AuthRegSendEmailPort) {
     }
 
     async passwordRecovery(email: string): Promise<ServiceResponseType<null>> {
@@ -52,7 +52,6 @@ export class AuthPasswordService {
             }
         }
         if (new Date() > userByCode.recoveryPasswordConfirm.expirationDate || userByCode.recoveryPasswordConfirm.isConfirmed) {
-            console.log('sdfsdf', new Date() > userByCode.recoveryPasswordConfirm.expirationDate )
             return {
                 status: StatusCode.BAD_REQUEST_400,
                 data: null, extensions: [{field: "recoveryPasswordConfirm", message: ""}],

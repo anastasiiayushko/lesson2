@@ -11,18 +11,19 @@ import {validateInputMiddleware} from "../../middlewares/validateInputMiddleware
 import {userValidateRegistration} from "../user/middlewares/userValidate";
 import {tokenRefreshAuthMiddleware} from "../../middlewares/tokenRefreshAuthMiddleware";
 import {throttlingRateLimitMiddleware} from "../../middlewares/throttlingRateLimintMiddleware";
+import {container} from "../../inversify.config";
 
 const authRouter = express.Router();
 
-const authController = new AuthController();
+const authController = container.resolve(AuthController);
 
 //set login trotling ip
-authRouter.post('/login', throttlingRateLimitMiddleware, loginValidator, validateInputMiddleware, authController.loginInSystem);
-authRouter.get('/me', tokenAuthMiddleware, authController.authMe);
+authRouter.post('/login', throttlingRateLimitMiddleware, loginValidator, validateInputMiddleware, authController.loginInSystem.bind(authController));
+authRouter.get('/me', tokenAuthMiddleware, authController.authMe.bind(authController));
 
-authRouter.post('/registration', throttlingRateLimitMiddleware, userValidateRegistration, validateInputMiddleware, authController.authRegistration);
-authRouter.post('/registration-confirmation', throttlingRateLimitMiddleware, confirmCodeValidator, validateInputMiddleware, authController.authEmailConfirmed);
-authRouter.post('/registration-email-resending', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.authEmailResending);
+authRouter.post('/registration', throttlingRateLimitMiddleware, userValidateRegistration, validateInputMiddleware, authController.authRegistration.bind(authController));
+authRouter.post('/registration-confirmation', throttlingRateLimitMiddleware, confirmCodeValidator, validateInputMiddleware, authController.authEmailConfirmed.bind(authController));
+authRouter.post('/registration-email-resending', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.authEmailResending.bind(authController));
 
 authRouter.post('/password-recovery', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.passwordRecovery.bind(authController));
 authRouter.post('/new-password', throttlingRateLimitMiddleware, confirmRecoveryCodeValidator, newPasswordValidate, validateInputMiddleware, authController.updatePassword.bind(authController));

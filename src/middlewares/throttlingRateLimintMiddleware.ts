@@ -1,10 +1,11 @@
 import {NextFunction, Request, Response} from "express";
 import {StatusCode} from "../types/status-code-types";
 import {ThrottlingRateRepository} from "../features/throttlingRate/repository/ThrottlingRateRepository";
+import {container} from "../inversify.config";
 // Лимит
 const REQUEST_LIMIT = 5;
 
-const throttlingRateRepository = new ThrottlingRateRepository();
+const throttlingRateRepository = container.get(ThrottlingRateRepository);
 
 export const throttlingRateLimitMiddleware =
     async (req: Request, res: Response, next: NextFunction) => {

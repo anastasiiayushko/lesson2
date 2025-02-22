@@ -6,23 +6,25 @@ import {PostQueryInputType} from "../../../db/types/db-post-type";
 import {postQueryPagingDef} from "../helpers/postQueryPagingDef";
 import {PostQueryRepository} from "../dal/postQueryRepository";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
+import {injectable} from "inversify";
 
+@injectable()
 export class PostController {
-    private _postService = new PostService();
-    private _postQueryRepo = new PostQueryRepository();
 
+    constructor(protected postService: PostService, protected postQueryRepository: PostQueryRepository) {
+    }
 
-    getPostsWithPaging = async (req: Request<{}, {}, {}, {}>,
-                                res: Response<PaginationViewModelType<PostViewModel>>) => {
+    async getPostsWithPaging(req: Request<{}, {}, {}, {}>,
+                             res: Response<PaginationViewModelType<PostViewModel>>) {
         let query: PostQueryInputType = req.query as PostQueryInputType;
         let queryDef = postQueryPagingDef(query);
-        let postsPaging = await this._postQueryRepo.getPostQuery(queryDef);
+        let postsPaging = await this.postQueryRepository.getPostQuery(queryDef);
         res.status(StatusCode.OK_200).json(postsPaging);
     }
 
-    getPost = async (req: Request<{ id: string }>, res: Response<PostViewModel>) => {
+    async getPost(req: Request<{ id: string }>, res: Response<PostViewModel>) {
         let id = req.params.id;
-        let post = await this._postQueryRepo.getById(id);
+        let post = await this.postQueryRepository.getById(id);
         if (!post) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
@@ -30,22 +32,22 @@ export class PostController {
         res.status(StatusCode.OK_200).json(post);
     }
 
-    createPost = async (req: Request<{}, {}, PostInputModel>,
-                        res: Response<PostViewModel>) => {
+    async createPost(req: Request<{}, {}, PostInputModel>,
+                     res: Response<PostViewModel>) {
 
-        let postId = await this._postService.createPost(req.body);
+        let postId = await this.postService.createPost(req.body);
         if (!postId) {
             res.sendStatus(StatusCode.NOT_FOUND_404)
             return
         }
-        let post = await this._postQueryRepo.getById(postId);
+        let post = await this.postQueryRepository.getById(postId);
         res.status(StatusCode.CREATED_201).json(post!);
     }
 
-    updatePost = async (req: Request<{ id: string }, {}, PostInputModel>,
-                        res: Response) => {
+    async updatePost(req: Request<{ id: string }, {}, PostInputModel>,
+                     res: Response) {
         let postId = req.params.id;
-        let isUpdatedPost = await this._postService.updatePostById(postId, req.body);
+        let isUpdatedPost = await this.postService.updatePostById(postId, req.body);
         if (!isUpdatedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
@@ -53,10 +55,10 @@ export class PostController {
         res.sendStatus(StatusCode.NO_CONTENT_204);
     }
 
-    deletePost = async (req: Request<{ id: string }>,
-                        res: Response) => {
+    async deletePost(req: Request<{ id: string }>,
+                     res: Response) {
         let id = req.params.id;
-        let isDeletedPost = await this._postService.delPostById(id)
+        let isDeletedPost = await this.postService.delPostById(id)
         if (!isDeletedPost) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;

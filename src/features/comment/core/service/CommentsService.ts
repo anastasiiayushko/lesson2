@@ -5,20 +5,16 @@ import {StatusCode} from "../../../../types/status-code-types";
 import {PostRepository} from "../../../post/dal/postRepository";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import createCommentDto from "../dtos/createComment";
+import {injectable} from "inversify";
 
 type CreatedResponse = string | null;
 
-
+@injectable()
 export class CommentsService {
-    private readonly postRepository: PostRepository;
-    private readonly userRepository: UserRepository;
-
-    constructor(readonly commentsRepository: CommentsRepository) {
-        this.postRepository = new PostRepository();
-        this.userRepository = new UserRepository();
+    constructor(readonly postRepository: PostRepository, protected userRepository: UserRepository, protected commentsRepository: CommentsRepository) {
     }
 
-    createComment = async (postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>> => {
+    async createComment  (postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>>  {
 
         let post = await this.postRepository.getById(postId);
         if (!post) {
@@ -44,7 +40,7 @@ export class CommentsService {
 
 
     }
-    updateComment = async (commentId: string, commentBody: string, userId: string): Promise<ServiceResponseType> => {
+    async updateComment  (commentId: string, commentBody: string, userId: string): Promise<ServiceResponseType>  {
         let findComment = await this.commentsRepository.getComment(commentId);
         if (!findComment) {
             return {
@@ -65,7 +61,7 @@ export class CommentsService {
         }
 
     }
-    deleteComment = async (commentId: string, userId: string): Promise<ServiceResponseType> => {
+    async deleteComment  (commentId: string, userId: string): Promise<ServiceResponseType>  {
         let comment = await this.commentsRepository.getComment(commentId);
         if (!comment) {
             return {
@@ -86,7 +82,7 @@ export class CommentsService {
             extensions: [], data: null
         }
     }
-    getComment = async (commentId: string): Promise<CommentViewModelType | null> => {
+    async getComment  (commentId: string): Promise<CommentViewModelType | null>  {
         let comment = await this.commentsRepository.getComment(commentId);
         return comment;
     }

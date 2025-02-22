@@ -2,22 +2,17 @@ import {Request, Response} from "express";
 import {CommentsService} from "../core/service/CommentsService";
 import {PostQueryRepository} from "../../post/dal/postQueryRepository";
 import {StatusCode} from "../../../types/status-code-types";
-import {CommentsRepositoryMongo} from "../dal/CommentsRepositoryMongo";
 import {CommentsQueryRepositoryMongo} from "../dal/CommentsQueryRepositoryMongo";
-import {UserQueryRepository} from "../../user/dal/UserQueryRepository";
 import {CommentQueryInputType, commentQueryPagingDef} from "../helpers/commentQueryPagingDef";
+import {injectable} from "inversify";
 
+@injectable()
 export class CommentsController {
-    private commentsService: CommentsService;
-    private commentsQueryRepository: CommentsQueryRepositoryMongo;
-    private postQueryRepository: PostQueryRepository;
-    private userQueryRepository: UserQueryRepository;
 
-    constructor() {
-        this.commentsService = new CommentsService(new CommentsRepositoryMongo());
-        this.commentsQueryRepository = new CommentsQueryRepositoryMongo();
-        this.postQueryRepository = new PostQueryRepository();
-        this.userQueryRepository = new UserQueryRepository();
+    constructor(protected commentsService: CommentsService,
+                protected commentsQueryRepository: CommentsQueryRepositoryMongo,
+                protected postQueryRepository: PostQueryRepository,
+    ) {
     }
 
     createComment = async (req: Request<{ postId: string }>,

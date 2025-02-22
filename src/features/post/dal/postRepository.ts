@@ -2,10 +2,12 @@ import {postCollection} from "../../../db/db";
 import {PostSchemaInputType, PostSchemaType} from "../../../db/types/db-post-type";
 import {PostViewModel} from "../../../types/input-output-types/post-types";
 import {ObjectId} from "mongodb";
+import {injectable} from "inversify";
 
 
+@injectable()
 export class PostRepository {
-    _mapperPostViewModel = (item: PostSchemaType): PostViewModel => {
+    _mapperPostViewModel(item: PostSchemaType): PostViewModel {
         return {
             id: item._id.toString(),
             title: item.title,
@@ -16,19 +18,17 @@ export class PostRepository {
             createdAt: item.createdAt,
         }
     }
-    getAll = async (): Promise<PostViewModel[]> => {
-        let posts = await postCollection.find({}).toArray();
-        return posts.map(this._mapperPostViewModel)
-    }
 
-    getById = async (id: string): Promise<PostViewModel | null> => {
+
+    async getById(id: string): Promise<PostViewModel | null> {
         let post = await postCollection.findOne({_id: new ObjectId(id)});
         if (!post) {
             return null
         }
         return this._mapperPostViewModel(post);
     }
-    createPost = async (postData: PostSchemaInputType): Promise<string> => {
+
+    async createPost(postData: PostSchemaInputType): Promise<string> {
         let createdAt = new Date().toISOString();
         let created = {
             _id: new ObjectId(),
@@ -39,12 +39,13 @@ export class PostRepository {
 
         return res.insertedId!.toString();
     }
-    updatePostById = async (id: string, postData: PostSchemaInputType): Promise<boolean> => {
+
+    async updatePostById(id: string, postData: PostSchemaInputType): Promise<boolean> {
         let res = await postCollection.updateOne({_id: new ObjectId(id)}, {$set: postData});
         return res.matchedCount === 1;
     }
 
-    delPostById = async (id: string): Promise<boolean> => {
+    async delPostById(id: string): Promise<boolean> {
         let res = await postCollection.deleteOne({_id: new ObjectId(id)});
         return res.deletedCount === 1;
     }

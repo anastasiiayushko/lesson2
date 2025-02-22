@@ -1,14 +1,14 @@
 import express from "express";
 import {DeviceSessionsController} from "./controller/DeviceSessionsController";
 import {tokenRefreshAuthMiddleware} from "../../middlewares/tokenRefreshAuthMiddleware";
-import {tokenAuthMiddleware} from "../../middlewares/tokenAuthMiddleware";
+import {container} from "../../inversify.config";
 
 const securityRouter = express.Router();
 
-const deviceSessionController = new DeviceSessionsController();
+const deviceSessionController = container.resolve(DeviceSessionsController);
 
-securityRouter.get('/devices', tokenRefreshAuthMiddleware, deviceSessionController.getAllDeviceSessions);
-securityRouter.delete('/devices', tokenRefreshAuthMiddleware, deviceSessionController.deleteAllOtherDeviceSessions);
-securityRouter.delete('/devices/:deviceId', tokenRefreshAuthMiddleware, deviceSessionController.deleteDeviceSessionByDeviceId);
+securityRouter.get('/devices', tokenRefreshAuthMiddleware, deviceSessionController.getAllDeviceSessions.bind(deviceSessionController));
+securityRouter.delete('/devices', tokenRefreshAuthMiddleware, deviceSessionController.deleteAllOtherDeviceSessions.bind(deviceSessionController));
+securityRouter.delete('/devices/:deviceId', tokenRefreshAuthMiddleware, deviceSessionController.deleteDeviceSessionByDeviceId.bind(deviceSessionController));
 
 export default securityRouter;

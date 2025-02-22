@@ -3,6 +3,7 @@ import {ServiceResponseType} from "../../../types/service-response-type";
 import {StatusCode} from "../../../types/status-code-types";
 import {randomUUID} from "crypto";
 import {jwtService} from "../../../app/jwtService";
+import {injectable} from "inversify";
 
 
 type AddingDeviceSessionResult = Promise<ServiceResponseType<{ accessToken: string, refreshToken: string }>>
@@ -12,16 +13,10 @@ type InputUpdateDeviceSessionType = {
     userId: string, deviceSessionId: string, deviceId: string, ip: string, userAgent: string
 }
 
+@injectable()
 export class DeviceSessionsService {
-    private deviceSessionRepository: DeviceSessionsRepository;
 
-    constructor() {
-        this.deviceSessionRepository = new DeviceSessionsRepository();
-
-        this.verifyRefreshToken = this.verifyRefreshToken.bind(this);
-        this.deleteByDeviceId = this.deleteByDeviceId.bind(this);
-        this.deleteAllOtherDeviceSessions = this.deleteAllOtherDeviceSessions.bind(this);
-    }
+    constructor(protected deviceSessionRepository: DeviceSessionsRepository) {}
 
 
     private async createTokenPairWithMetadata(userId: string, deviceId: string,): Promise<{
@@ -68,14 +63,12 @@ export class DeviceSessionsService {
 
     }
 
-    // adding mid tokenRefreshAuthToken
-    updateDevice = async ({
-                              userId,
-                              // deviceSessionId,
-                              deviceId,
-                              ip,
-                              userAgent
-                          }: InputUpdateDeviceSessionType): UpdateDeviceSessionResult => {
+    async updateDevice({
+                           userId,
+                           deviceId,
+                           ip,
+                           userAgent
+                       }: InputUpdateDeviceSessionType): UpdateDeviceSessionResult {
 
         const sessionMeta = await this.createTokenPairWithMetadata(userId, deviceId);
         await this.deviceSessionRepository.updateDeviceSessionById(
@@ -97,7 +90,8 @@ export class DeviceSessionsService {
         }
 
     }
-    deleteSessionDeviceById = async (deviceSessionId: string): Promise<ServiceResponseType<boolean>> => {
+
+    async deleteSessionDeviceById(deviceSessionId: string): Promise<ServiceResponseType<boolean>> {
         let result = await this.deviceSessionRepository.deleteSessionDeviceById(deviceSessionId);
 
         return {

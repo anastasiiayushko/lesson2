@@ -5,23 +5,26 @@ import {ObjectId} from "mongodb";
 import {mappedCommentDbToView} from "./mapper/mappedCommentDbToView";
 import {CommentQueryInputType} from "../helpers/commentQueryPagingDef";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
+import {injectable} from "inversify";
 
+@injectable()
 export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
-    getCommentById = async (id: string): Promise<CommentViewModelType | null> => {
+    async getCommentById(id: string): Promise<CommentViewModelType | null> {
         let comment = await commentCollection.findOne({_id: new ObjectId(id)});
         if (!comment) {
             return null;
         }
         return mappedCommentDbToView(comment);
     }
-    getCommentsByPostWithPaging = async (postId: string, query: CommentQueryInputType) :
-        Promise<PaginationViewModelType<CommentViewModelType>> => {
+
+    async getCommentsByPostWithPaging(postId: string, query: CommentQueryInputType):
+        Promise<PaginationViewModelType<CommentViewModelType>> {
         let sortBy = query.sortBy as string;
         let sortingDirection = query.sortDirection;
         let limit = +query.pageSize;
         let page = +query.pageNumber;
         let skip: number = (page - 1) * limit;
-        let findFilter ={postId: postId};
+        let findFilter = {postId: postId};
 
         let items = await commentCollection.find(findFilter)
             .sort({[sortBy]: sortingDirection})

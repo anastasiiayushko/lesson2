@@ -1,7 +1,9 @@
 import {AuthRegSendEmailPort} from "../core/port/AuthRegSendEmailPort";
 import nodemailer from "nodemailer";
 import {SETTINGS} from "../../../settings";
+import {injectable} from "inversify";
 
+@injectable()
 export class AuthRegSendEmailAdapter implements AuthRegSendEmailPort {
     private transporter;
 
@@ -16,7 +18,7 @@ export class AuthRegSendEmailAdapter implements AuthRegSendEmailPort {
         });
     }
 
-    confirmRegistration = async (emailTo: string, confirmedCode: string) => {
+    async confirmRegistration(emailTo: string, confirmedCode: string) {
         this.transporter.sendMail({
             from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
             to: emailTo, // list of receivers
@@ -29,7 +31,8 @@ export class AuthRegSendEmailAdapter implements AuthRegSendEmailPort {
             console.error('confirmRegistration', e.message)
         })
     }
-    recoveryPassword = async (emailTo: string, confirmedCode: string) => {
+
+    async recoveryPassword(emailTo: string, confirmedCode: string) {
         this.transporter.sendMail({
             from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
             to: emailTo, // list of receivers

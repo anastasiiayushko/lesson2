@@ -8,14 +8,18 @@ import {
 import {UserFullViewModel, UserSecureViewModel} from "../../../types/input-output-types/user-types";
 import {ObjectId} from "mongodb";
 import {mappedUserDbToUserView} from "./mapper/mappedUserDbToUserView";
+import {injectable} from "inversify";
 
+
+@injectable()
 export class UserRepository {
 
-    createUser = async (userInput: UserSchemaInputType): Promise<string> => {
+    async createUser(userInput: UserSchemaInputType): Promise<string> {
         let user = await userCollection.insertOne(userInput as UserSchemaType);
         return user.insertedId.toString()
     }
-    checkUserByLoginOrEmail = async (login: string, email: string): Promise<UserSecureViewModel | null> => {
+
+    async checkUserByLoginOrEmail(login: string, email: string): Promise<UserSecureViewModel | null> {
         let user = await userCollection.findOne({
             $or: [{login: login}, {email: email}]
         });
@@ -25,7 +29,7 @@ export class UserRepository {
         return mappedUserDbToUserView.viewFull(user);
     }
 
-    getUserByLoginOrEmail = async (loginOrEmail: string): Promise<UserFullViewModel | null> => {
+    async getUserByLoginOrEmail(loginOrEmail: string): Promise<UserFullViewModel | null> {
         let user = await userCollection.findOne({
             $or: [{login: loginOrEmail}, {email: loginOrEmail}]
         });
@@ -35,7 +39,7 @@ export class UserRepository {
         return mappedUserDbToUserView.viewFull(user)
     }
 
-    getUserById = async (id: string): Promise<UserFullViewModel | null> => {
+    async getUserById(id: string): Promise<UserFullViewModel | null> {
         let user = await userCollection.findOne({_id: new ObjectId(id)});
         if (!user) {
             return null;
@@ -43,16 +47,17 @@ export class UserRepository {
         return mappedUserDbToUserView.viewFull(user)
     }
 
-    deleteUserById = async (id: string): Promise<boolean> => {
+    async deleteUserById(id: string): Promise<boolean> {
         let command = await userCollection.deleteOne({_id: new ObjectId(id)});
         return command.deletedCount === 1
     }
 
-    findUserByConfirmationCode = async (code: string): Promise<UserFullViewModel | null> => {
+    async findUserByConfirmationCode(code: string): Promise<UserFullViewModel | null> {
         let user = await userCollection.findOne({"emailConfirmation.confirmationCode": code});
         return user ? mappedUserDbToUserView.viewFull(user) : null;
     }
-    updateEmailConfirmation = async (confirmationData: Partial<EmailConfirmationDbType>, userId: string): Promise<boolean> => {
+
+    async updateEmailConfirmation(confirmationData: Partial<EmailConfirmationDbType>, userId: string): Promise<boolean> {
         let setOperation: any = {};
         if (confirmationData.hasOwnProperty('isConfirmed')) {
             setOperation['emailConfirmation.isConfirmed'] = confirmationData.isConfirmed;

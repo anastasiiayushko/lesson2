@@ -8,23 +8,26 @@ import {CommentsController} from "../comment/controller/CommentsController";
 import {commentValidate} from "../comment/middlewares/commentValidate";
 import {tokenAuthMiddleware} from "../../middlewares/tokenAuthMiddleware";
 import {commentsQueryValidate} from "../comment/middlewares/commentQueryValidate";
+import {container} from "../../inversify.config";
 
 export const postRouter = Router();
 
-const postController = new PostController();
+// const postController = ioc.getInstance<PostController>(PostController)
+const postController = container.resolve(PostController);
 
+const commentsController = container.resolve(CommentsController);
 
-const commentsController = new CommentsController();
-
-postRouter.get('/', ...postQueryValidate, validateInputMiddleware, postController.getPostsWithPaging);
-postRouter.get('/:id', postController.getPost);
-postRouter.get('/:postId/comments', ...commentsQueryValidate, validateInputMiddleware, commentsController.getCommentsByPostIdWithPaging);
+postRouter.get('/', ...postQueryValidate, validateInputMiddleware, postController.getPostsWithPaging.bind(postController));
+postRouter.get('/:id', postController.getPost.bind(postController));
+postRouter.get('/:postId/comments', ...commentsQueryValidate, validateInputMiddleware, commentsController.getCommentsByPostIdWithPaging.bind(commentsController));
 
 
 //protected
-postRouter.post('/', adminAuthMiddleware, ...postValidate, validateInputMiddleware, postController.createPost);
-postRouter.put('/:id', adminAuthMiddleware, ...postValidate, validateInputMiddleware, postController.updatePost);
-postRouter.delete('/:id', adminAuthMiddleware, postController.deletePost);
+postRouter.post('/', adminAuthMiddleware, ...postValidate, validateInputMiddleware, postController.createPost.bind(postController));
+postRouter.put('/:id', adminAuthMiddleware, ...postValidate, validateInputMiddleware, postController.updatePost.bind(postController));
+postRouter.delete('/:id', adminAuthMiddleware, postController.deletePost.bind(postController));
 
 //protected bearer token
-postRouter.post('/:postId/comments', tokenAuthMiddleware, ...commentValidate, validateInputMiddleware, commentsController.createComment);
+postRouter.post('/:postId/comments', tokenAuthMiddleware, ...commentValidate, validateInputMiddleware, commentsController.createComment.bind(commentsController));
+
+

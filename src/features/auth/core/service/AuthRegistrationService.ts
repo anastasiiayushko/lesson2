@@ -5,17 +5,19 @@ import {ServiceResponseType} from "../../../../types/service-response-type";
 import {StatusCode} from "../../../../types/status-code-types";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import {UserConfirmData} from "../dtos/userConfirmData";
+import {injectable} from "inversify";
 
+
+@injectable()
 export class AuthRegistrationService {
-    private readonly userService: UserService;
-    private readonly userRepository: UserRepository;
 
-    constructor(private readonly authSendEmailAdapter: AuthRegSendEmailPort) {
-        this.userService = new UserService();
-        this.userRepository = new UserRepository();
+    constructor(protected authSendEmailAdapter: AuthRegSendEmailPort,
+                protected userService: UserService,
+                protected userRepository: UserRepository,
+    ) {
     }
 
-    registration = async (userInput: UserInputModel): Promise<ServiceResponseType> => {
+    async registration(userInput: UserInputModel): Promise<ServiceResponseType> {
 
         let result = await this.userService.createUser(userInput, false);
         if (result.extensions?.length || !result.data) {
@@ -37,7 +39,7 @@ export class AuthRegistrationService {
         }
     }
 
-    registrationConfirmed = async (code: string): Promise<ServiceResponseType<{ isConfirmed: boolean }>> => {
+    async registrationConfirmed(code: string): Promise<ServiceResponseType<{ isConfirmed: boolean }>> {
         let userByCode = await this.userRepository.findUserByConfirmationCode(code);
 
         if (!userByCode) {
@@ -63,7 +65,7 @@ export class AuthRegistrationService {
         }
     }
 
-    registrationEmailResending = async (email: string): Promise<ServiceResponseType<{ isResending: boolean }>> => {
+    async registrationEmailResending(email: string): Promise<ServiceResponseType<{ isResending: boolean }>> {
         let userByEmail = await this.userRepository.getUserByLoginOrEmail(email);
         if (!userByEmail) {
             return {

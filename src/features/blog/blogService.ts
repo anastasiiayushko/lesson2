@@ -3,9 +3,10 @@ import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-ty
 
 
 export class BlogService {
-    private _blogRepo = new BlogRepository()
+    constructor(private readonly blogRepository: BlogRepository) {}
 
-    _mapperBodyBlog = (body: BlogInputModelType): BlogInputModelType => {
+
+    private _mapperBodyBlog(body: BlogInputModelType): BlogInputModelType {
         return {
             name: body.name,
             description: body.description,
@@ -13,11 +14,11 @@ export class BlogService {
         }
     }
 
-    getById = async (id: string): Promise<BlogViewModelType | null> => {
-        return await this._blogRepo.getById(id);
+    async getById(id: string): Promise<BlogViewModelType | null> {
+        return await this.blogRepository.getById(id);
     }
 
-    createBlog = async (body: BlogInputModelType): Promise<string> => {
+    async createBlog(body: BlogInputModelType): Promise<string> {
         let createBlog = {
             name: body.name,
             description: body.description,
@@ -26,18 +27,18 @@ export class BlogService {
             isMembership: false,
         }
 
-        return await this._blogRepo.createBlog(createBlog);
+        return await this.blogRepository.createBlog(createBlog);
 
     }
-    updateById = async (id: string,
-                        body: Omit<BlogInputModelType, 'createdAt' | 'isMembership'>): Promise<boolean> => {
+
+    async updateById(id: string, body: Omit<BlogInputModelType, 'createdAt' | 'isMembership'>): Promise<boolean> {
         let blogUpdate = this._mapperBodyBlog(body)
-        return await this._blogRepo.updateById(id, blogUpdate);
+        return await this.blogRepository.updateById(id, blogUpdate);
 
     }
 
-    deleteDyId = async (id: string): Promise<boolean> => {
-        return await this._blogRepo.deleteDyId(id);
+    async deleteDyId(id: string): Promise<boolean> {
+        return await this.blogRepository.deleteDyId(id);
 
     }
 }

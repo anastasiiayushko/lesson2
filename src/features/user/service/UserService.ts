@@ -5,6 +5,7 @@ import {ErrorItemType} from "../../../types/output-error-types";
 import {StatusCode} from "../../../types/status-code-types";
 import {ServiceResponseType} from "../../../types/service-response-type";
 import {CreateUser} from "./dtos/createUser";
+import {injectable} from "inversify";
 
 
 type UserCreatedType = {
@@ -13,13 +14,15 @@ type UserCreatedType = {
 }
 const SALT_ROUND = 5;
 
-export class UserService {
-    private readonly _userRepo = new UserRepository();
 
-    createUser = async (userInput: UserInputModel, isConfirmed: boolean): Promise<ServiceResponseType<UserCreatedType | null>> => {
+@injectable()
+export class UserService {
+    constructor(protected userRepository: UserRepository) {}
+
+    async createUser(userInput: UserInputModel, isConfirmed: boolean): Promise<ServiceResponseType<UserCreatedType | null>> {
         let errors: ErrorItemType[] = [];
 
-        let findUser = await this._userRepo.checkUserByLoginOrEmail(userInput.login, userInput.email);
+        let findUser = await this.userRepository.checkUserByLoginOrEmail(userInput.login, userInput.email);
 
         if (findUser) {
             if (findUser.login === userInput.login) {
@@ -42,7 +45,7 @@ export class UserService {
         let passwordHash = await bcrypt.hash(userInput.password, salt);
 
         let user = new CreateUser(userInput.login, userInput.email, passwordHash, isConfirmed)
-        let userId = await this._userRepo.createUser(user);
+        let userId = await this.userRepository.createUser(user);
         return {
             extensions: [],
             data: {userId: userId, confirmationCode: user.emailConfirmation.confirmationCode},
@@ -50,9 +53,9 @@ export class UserService {
         }
     }
 
-    checkCredentialsUser = async (loginOrEmail: string, password: string):
-        Promise<ServiceResponseType<{ userId: string } | null>> => {
-        let findUser = await this._userRepo.getUserByLoginOrEmail(loginOrEmail);
+    async checkCredentialsUser(loginOrEmail: string, password: string):
+        Promise<ServiceResponseType<{ userId: string } | null>> {
+        let findUser = await this.userRepository.getUserByLoginOrEmail(loginOrEmail);
         if (!findUser) {
             return {
                 status: StatusCode.NOT_FOUND__404,
@@ -79,13 +82,13 @@ export class UserService {
 
     }
 
-    deleteUser = async (id: string): Promise<boolean> => {
-        let deleted = await this._userRepo.deleteUserById(id);
+    async deleteUser(id: string): Promise<boolean> {
+        let deleted = await this.userRepository.deleteUserById(id);
         return deleted;
     }
 
-    getUserById = async (id: string): Promise<UserFullViewModel | null> => {
-        return await this._userRepo.getUserById(id)
+    async getUserById(id: string): Promise<UserFullViewModel | null> {
+        return await this.userRepository.getUserById(id)
     }
 
 

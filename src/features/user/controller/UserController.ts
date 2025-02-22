@@ -6,20 +6,22 @@ import {UserQueryRepository} from "../dal/UserQueryRepository";
 import {ApiErrorResultType} from "../../../types/output-error-types";
 import {userQueryPagingDef} from "../helpers/userQueryPagingDef";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
+import {injectable} from "inversify";
+import {PostService} from "../../post/service/postService";
 
+@injectable()
 export class UserController {
-    private readonly userService: UserService
-    private readonly userQueryRepository: UserQueryRepository;
 
-    constructor() {
-        this.userService = new UserService();
-        this.userQueryRepository = new UserQueryRepository();
+    constructor(
+        protected userService: UserService,
+        protected userQueryRepository: UserQueryRepository,
+    ) {
     }
 
-    createUser = async (req: Request<{}, {}, UserInputModel>,
-                        res: Response<ApiErrorResultType | UserSecureViewModel>) => {
+    async createUser(req: Request<{}, {}, UserInputModel>,
+                     res: Response<ApiErrorResultType | UserSecureViewModel>) {
         let result = await this.userService.createUser(req.body, true);
-        if(result.extensions?.length || !result.data){
+        if (result.extensions?.length || !result.data) {
             res.status(result.status).json({
                 errorsMessages: result.extensions
             })
@@ -32,7 +34,7 @@ export class UserController {
 
     }
 
-    deleteUserById = async (req: Request<{ id: string }>, res: Response) => {
+    async deleteUserById(req: Request<{ id: string }>, res: Response) {
         let isDeleted = await this.userService.deleteUser(req.params.id);
         if (isDeleted) {
             res.sendStatus(StatusCode.NO_CONTENT_204);
@@ -42,8 +44,8 @@ export class UserController {
 
     }
 
-    getUsersWithPaging = async (req: Request<{}, {}, {}, {}>,
-                                res: Response<PaginationViewModelType<UserSecureViewModel>>) => {
+    async getUsersWithPaging(req: Request<{}, {}, {}, {}>,
+                             res: Response<PaginationViewModelType<UserSecureViewModel>>) {
         let query = req.query as UserQueryInputType;
         let queryDef = userQueryPagingDef(query);
         let usersWithPaging = await this.userQueryRepository.getUsersWithPaging(queryDef);

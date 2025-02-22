@@ -1,9 +1,10 @@
 import {NextFunction, Request, Response} from "express";
 import {StatusCode} from "../types/status-code-types";
 import {DeviceSessionsService} from "../features/sessions/service/DeviceSessionsService";
+import {container} from "../inversify.config";
 
 
-const deviceSessionsService = new DeviceSessionsService();
+const deviceSessionsService = container.resolve(DeviceSessionsService);
 
 export const tokenRefreshAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 

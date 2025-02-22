@@ -4,10 +4,13 @@ import {BlogQueryInputType, BlogSchemaType} from "../../../db/types/db-blog-type
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {ObjectId} from "mongodb";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
+import {injectable} from "inversify";
 
+
+@injectable()
 export class BlogQueryRepository {
 
-    _mapperBlog = (item: BlogSchemaType): BlogViewModelType => {
+    _mapperBlog(item: BlogSchemaType): BlogViewModelType {
         return {
             id: item._id.toString(),
             name: item.name,
@@ -17,7 +20,8 @@ export class BlogQueryRepository {
             createdAt: item.createdAt,
         }
     }
-    getById = async (id: string): Promise<BlogViewModelType | null> => {
+
+    async getById(id: string): Promise<BlogViewModelType | null> {
         let blog = await blogCollection.findOne({_id: new ObjectId(id)});
         if (!blog) {
             return null
@@ -26,8 +30,8 @@ export class BlogQueryRepository {
 
     }
 
-    getBlogsQuery = async (query: BlogQueryInputType)
-        : Promise<PaginationViewModelType<BlogViewModelType>> => {
+    async getBlogsQuery(query: BlogQueryInputType)
+        : Promise<PaginationViewModelType<BlogViewModelType>> {
         let filter = {};
         if (query.searchNameTerm) {
             filter = {name: {$regex: query.searchNameTerm, $options: "i"}};

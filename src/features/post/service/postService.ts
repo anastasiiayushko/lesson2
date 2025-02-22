@@ -4,12 +4,16 @@ import {PostInputModel, PostViewModel} from "../../../types/input-output-types/p
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {PostSchemaInputType} from "../../../db/types/db-post-type";
 import {PostQueryRepository} from "../dal/postQueryRepository";
+import {injectable} from "inversify";
 
 
+@injectable()
 export class PostService {
-    private _postRepo = new PostRepository();
-    private _postQueryRepo = new PostQueryRepository();
-    private _blogRepo = new BlogRepository();
+
+    constructor(protected postRepository: PostRepository,
+                protected postQueryRepository: PostQueryRepository,
+                protected blogRepository: BlogRepository,
+    ) {}
 
     _mapperBodyPost = (body: PostInputModel): PostInputModel => {
         return {
@@ -21,12 +25,13 @@ export class PostService {
     }
 
 
-    getById = async (id: string): Promise<PostViewModel | null> => {
-        return await this._postQueryRepo.getById(id);
+    async getById(id: string): Promise<PostViewModel | null> {
+        return await this.postQueryRepository.getById(id);
     }
-    createPost = async (body: PostInputModel): Promise<string | null> => {
+
+    async createPost(body: PostInputModel): Promise<string | null> {
         let postData = this._mapperBodyPost(body);
-        let blog = await this._blogRepo.getById(postData.blogId);
+        let blog = await this.blogRepository.getById(postData.blogId);
         if (!blog) return null
         let createdAt = new Date().toISOString();
         let created = {
@@ -34,20 +39,21 @@ export class PostService {
             createdAt: createdAt,
             blogName: blog.name
         }
-        return await this._postRepo.createPost(created);
+        return await this.postRepository.createPost(created);
     }
-    updatePostById = async (id: string, body: PostInputModel): Promise<boolean> => {
+
+    async updatePostById(id: string, body: PostInputModel): Promise<boolean> {
         let postData = this._mapperBodyPost(body);
-        let blog = await this._blogRepo.getById(postData.blogId) as BlogViewModelType;
+        let blog = await this.blogRepository.getById(postData.blogId) as BlogViewModelType;
 
         let postUpdate: PostSchemaInputType = {
             ...postData,
             blogName: blog.name
         }
-        return await this._postRepo.updatePostById(id, postUpdate)
+        return await this.postRepository.updatePostById(id, postUpdate)
     }
 
-    delPostById = async (id: string): Promise<boolean> => {
-        return await this._postRepo.delPostById(id);
+    async delPostById(id: string): Promise<boolean> {
+        return await this.postRepository.delPostById(id);
     }
 }

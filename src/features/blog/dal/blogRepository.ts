@@ -2,11 +2,12 @@ import {blogCollection} from "../../../db/db";
 import {BlogCreateSchemaType, BlogSchemaInputType, BlogSchemaType} from "../../../db/types/db-blog-type";
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
 import {ObjectId} from "mongodb";
+import {injectable} from "inversify";
 
-
+@injectable()
 export class BlogRepository {
 
-    _mapDbBlogToView = (item: BlogSchemaType): BlogViewModelType => {
+    _mapDbBlogToView(item: BlogSchemaType): BlogViewModelType {
         return {
             id: item._id.toString(),
             name: item.name,
@@ -16,12 +17,9 @@ export class BlogRepository {
             isMembership: item.isMembership
         }
     }
-    getAll = async (): Promise<BlogViewModelType[]> => {
-        let blogs = await blogCollection.find({}).toArray();
-        return blogs.map(this._mapDbBlogToView);
-    }
 
-    getById = async (id: string): Promise<BlogViewModelType | null> => {
+
+    async getById(id: string): Promise<BlogViewModelType | null> {
         let blog = await blogCollection.findOne({_id: new ObjectId(id)});
         if (!blog) {
             return null
@@ -29,7 +27,7 @@ export class BlogRepository {
         return this._mapDbBlogToView(blog);
     }
 
-    createBlog = async (blogData:BlogCreateSchemaType): Promise<string> => {
+    async createBlog(blogData: BlogCreateSchemaType): Promise<string> {
 
         let res = await blogCollection.insertOne(blogData as BlogSchemaType);
         /** result operation insertOne
@@ -39,15 +37,16 @@ export class BlogRepository {
         return res.insertedId!.toString();
 
     }
-    updateById = async (id: string,
-                        blogUpdate: Omit<BlogSchemaInputType, 'createdAt' | 'isMembership'>): Promise<boolean> => {
+
+    async updateById(id: string,
+                     blogUpdate: Omit<BlogSchemaInputType, 'createdAt' | 'isMembership'>): Promise<boolean> {
 
         let result = await blogCollection.updateOne({_id: new ObjectId(id)}, {$set: blogUpdate});
 
         return result.matchedCount === 1;
     }
 
-    deleteDyId = async (id: string): Promise<boolean> => {
+    async deleteDyId(id: string): Promise<boolean> {
         let result = await blogCollection.deleteOne({_id: new ObjectId(id)});
         /**
          * { acknowledged: true, deletedCount: 1 } */

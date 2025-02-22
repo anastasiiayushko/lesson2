@@ -1,12 +1,13 @@
 import {throttlingRateCollection} from "../../../db/db";
+import {injectable} from "inversify";
 
+
+@injectable()
 export class ThrottlingRateRepository {
     private db;
 
     constructor() {
         this.db = throttlingRateCollection;
-        this.logRequest = this.logRequest.bind(this);
-        this.countDocuments = this.countDocuments.bind(this);
     }
 
     async logRequest(ip: string, url: string) {

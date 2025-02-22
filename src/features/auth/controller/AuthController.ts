@@ -2,42 +2,28 @@ import {Request, Response} from "express";
 import {UserService} from "../../user/service/UserService";
 import {StatusCode} from "../../../types/status-code-types";
 import {UserQueryRepository} from "../../user/dal/UserQueryRepository";
-import {AuthRegSendEmailAdapter} from "../adapter/AuthRegSendEmailAdapter";
 import {AuthRegistrationService} from "../core/service/AuthRegistrationService";
 import {UserInputModel} from "../../../types/input-output-types/user-types";
 import {ApiErrorResultType} from "../../../types/output-error-types";
 import {DeviceSessionsService} from "../../sessions/service/DeviceSessionsService";
 import {AuthPasswordService} from "../core/service/AuthPasswordService";
-import {UserRepository} from "../../user/dal/UserRepository";
+import {injectable} from "inversify";
 
 type LoginInputType = {
     loginOrEmail: string, password: string
 }
 
+
+@injectable()
 export class AuthController {
-    private readonly userService: UserService;
-    private readonly userQueryRepository: UserQueryRepository;
-    private readonly authRegService: AuthRegistrationService;
-    private readonly deviceSessionsService: DeviceSessionsService;
-    authPasswordService: AuthPasswordService;
 
-    constructor() {
-        this.userService = new UserService();
-        this.authPasswordService = new AuthPasswordService(new UserRepository(), new AuthRegSendEmailAdapter());
-        this.userQueryRepository = new UserQueryRepository();
-        this.authRegService = new AuthRegistrationService(new AuthRegSendEmailAdapter());
-        this.deviceSessionsService = new DeviceSessionsService();
+    constructor(protected userService: UserService,
+                protected authPasswordService: AuthPasswordService,
+                protected userQueryRepository: UserQueryRepository,
+                protected authRegistrationService: AuthRegistrationService,
+                protected deviceSessionsService: DeviceSessionsService,
+    ) {}
 
-        this.loginInSystem = this.loginInSystem.bind(this);
-        this.authMe = this.authMe.bind(this);
-        this.authRegistration = this.authRegistration.bind(this);
-        this.authEmailConfirmed = this.authEmailConfirmed.bind(this);
-        this.authEmailResending = this.authEmailResending.bind(this);
-        this.refreshToken = this.refreshToken.bind(this);
-        this.logout = this.logout.bind(this);
-        this.getMetaAgent = this.getMetaAgent.bind(this);
-
-    }
 
     private getMetaAgent(req: Request): { ip: string | undefined, userAgent: string } {
         const ip = req.headers['x-forwarded-for']
@@ -96,7 +82,7 @@ export class AuthController {
     public async authRegistration(req: Request<{}, {}, UserInputModel>,
                                   res: Response<ApiErrorResultType>) {
         let userInput = req.body;
-        let result = await this.authRegService.registration(userInput);
+        let result = await this.authRegistrationService.registration(userInput);
         if (result.extensions.length) {
             res.status(result.status).json({
                 errorsMessages: result.extensions
@@ -109,7 +95,7 @@ export class AuthController {
     public async authEmailConfirmed(req: Request<{}, {}, { code: string }>, res: Response<ApiErrorResultType>) {
         let code = req.body.code;
 
-        let result = await this.authRegService.registrationConfirmed(code);
+        let result = await this.authRegistrationService.registrationConfirmed(code);
 
         if (result.extensions.length || !result.data.isConfirmed) {
             res.status(result.status).json({errorsMessages: result.extensions});
@@ -121,7 +107,7 @@ export class AuthController {
 
     public async authEmailResending(req: Request<{}, {}, { email: string }>, res: Response<ApiErrorResultType>) {
         let email = req.body.email;
-        let result = await this.authRegService.registrationEmailResending(email);
+        let result = await this.authRegistrationService.registrationEmailResending(email);
         if (result.extensions.length) {
             res.status(result.status).json({errorsMessages: result.extensions});
             return;
@@ -181,15 +167,15 @@ export class AuthController {
             res.sendStatus(StatusCode.NO_CONTENT_204);
         }
     }
+
     public async updatePassword(req: Request, res: Response) {
-        try{
+        try {
             const recoveryCode = req.body.recoveryCode;
             const password = req.body.newPassword;
             const result = await this.authPasswordService.changePassword(password, recoveryCode);
             console.log(result);
             res.sendStatus(result.status);
-        }
-        catch (e) {
+        } catch (e) {
 
         }
     }

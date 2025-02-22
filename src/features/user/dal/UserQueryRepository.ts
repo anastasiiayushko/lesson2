@@ -7,8 +7,9 @@ import {UserSchemaType} from "../../../db/types/db-user-type";
 import {userCollection} from "../../../db/db";
 import {ObjectId} from "mongodb";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
+import {injectable} from "inversify";
 
-
+@injectable()
 export class UserQueryRepository {
     private _mapperSecureUser = (item: UserSchemaType): UserSecureViewModel => {
         return {
@@ -18,14 +19,16 @@ export class UserQueryRepository {
             createdAt: item.createdAt,
         }
     }
-    private _mapperToAuthMe = (item: UserSchemaType): UserAuthMeModelViewType => {
+
+    private _mapperToAuthMe(item: UserSchemaType): UserAuthMeModelViewType {
         return {
             userId: item._id.toString(),
             email: item.email,
             login: item.login,
         }
     }
-    getUserForAuthMe = async (id: string): Promise<UserAuthMeModelViewType | null> => {
+
+    async getUserForAuthMe(id: string): Promise<UserAuthMeModelViewType | null> {
         let user = await userCollection.findOne({_id: new ObjectId(id)});
         if (!user) {
             return null
@@ -33,14 +36,15 @@ export class UserQueryRepository {
         return this._mapperToAuthMe(user)
     }
 
-    getUserById = async (id: string): Promise<UserSecureViewModel | null> => {
+    async getUserById(id: string): Promise<UserSecureViewModel | null> {
         let user = await userCollection.findOne({_id: new ObjectId(id)});
         if (!user) {
             return null
         }
         return this._mapperSecureUser(user)
     }
-    getUsersWithPaging = async (query: UserQueryInputType): Promise<PaginationViewModelType<UserSecureViewModel>> => {
+
+    async getUsersWithPaging(query: UserQueryInputType): Promise<PaginationViewModelType<UserSecureViewModel>> {
         let filter = {};
         let searchEmailTerm = query.searchEmailTerm ?? ``;
         let searchLoginTerm = query.searchLoginTerm ?? ``;
