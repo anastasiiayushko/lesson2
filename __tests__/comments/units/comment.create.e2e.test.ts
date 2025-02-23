@@ -49,6 +49,9 @@ describe('Comment create', () => {
     beforeEach(async () => {
         await throttlingRateCollection.drop();
     })
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
 
     it("Should return 201  success  and created resource comment", async () => {
         let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
@@ -67,13 +70,13 @@ describe('Comment create', () => {
         });
     })
 
-    it("Should return 401 if no token is provided", async () => {
+    it("Should return 401 if user Unauthorized", async () => {
         await authRequests.login(userNika.login, userNika.password)
-        const tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
+        // const tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
 
         const commentTargetPost = postEntry[0];
         const commentBody = generateRandomStringForTest(50)
-        const commentRes = await commentRequests.createCommentByPostIdParams(tokenGust, commentTargetPost._id.toString(), commentBody);
+        const commentRes = await commentRequests.createCommentByPostIdParams('', commentTargetPost._id.toString(), commentBody);
         expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);
     })
 
@@ -107,8 +110,8 @@ describe('Comment create', () => {
     })
 
     it("Should return 404 if postId no existing", async () => {
-        let nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
-        let token = nikaLoginResult.body.accessToken;
+        const nikaLoginResult = await authRequests.login(userNika.login, userNika.password)
+        const token = nikaLoginResult.body.accessToken;
 
         let commentTargetPost = {_id: new ObjectId()};
         let commentBody = generateRandomStringForTest(30)

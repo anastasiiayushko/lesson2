@@ -23,7 +23,9 @@ describe("User admin delete", () => {
         userDb = userRes.body
 
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it('Should return 401 if invalid header basic auth', async () => {
         let response = await userRequests.deleteUser(BASIC_INVALID_HEADER, userDb!.id);
         expect(response.status).toBe(StatusCode.UNAUTHORIZED_401);

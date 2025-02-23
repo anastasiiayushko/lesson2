@@ -28,6 +28,6 @@ authRouter.post('/registration-email-resending', throttlingRateLimitMiddleware, 
 authRouter.post('/password-recovery', throttlingRateLimitMiddleware, authEmailValidator, validateInputMiddleware, authController.passwordRecovery.bind(authController));
 authRouter.post('/new-password', throttlingRateLimitMiddleware, confirmRecoveryCodeValidator, newPasswordValidate, validateInputMiddleware, authController.updatePassword.bind(authController));
 
-authRouter.post('/refresh-token', tokenRefreshAuthMiddleware, authController.refreshToken)
-authRouter.post('/logout', tokenRefreshAuthMiddleware, authController.logout)
+authRouter.post('/refresh-token', tokenRefreshAuthMiddleware, authController.refreshToken.bind(authController))
+authRouter.post('/logout', tokenRefreshAuthMiddleware, authController.logout.bind(authController))
 export default authRouter;

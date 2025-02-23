@@ -18,17 +18,13 @@ export const throttlingRateLimitMiddleware =
             return;
         }
         try {
-
             await throttlingRateRepository.logRequest(ip, baseUrl);
             const requestsInLast10Seconds = await throttlingRateRepository.countDocuments(ip, baseUrl);
-            // console.log(requestsInLast10Seconds);
             if (requestsInLast10Seconds > REQUEST_LIMIT) {
-
                 res.sendStatus(StatusCode.MANY_REQUEST_429)
                 return;
             }
             next();
-
         } catch (err) {
             res.sendStatus(StatusCode.MANY_REQUEST_429);
             return

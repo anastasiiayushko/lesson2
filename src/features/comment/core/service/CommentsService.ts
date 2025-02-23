@@ -5,13 +5,15 @@ import {StatusCode} from "../../../../types/status-code-types";
 import {PostRepository} from "../../../post/dal/postRepository";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import createCommentDto from "../dtos/createComment";
-import {injectable} from "inversify";
+import {inject, injectable} from "inversify";
+import {CommentsRepositoryMongo} from "../../dal/CommentsRepositoryMongo";
 
 type CreatedResponse = string | null;
 
 @injectable()
 export class CommentsService {
-    constructor(readonly postRepository: PostRepository, protected userRepository: UserRepository, protected commentsRepository: CommentsRepository) {
+    constructor(readonly postRepository: PostRepository, protected userRepository: UserRepository,
+                @inject(CommentsRepositoryMongo)protected commentsRepository: CommentsRepository) {
     }
 
     async createComment  (postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>>  {

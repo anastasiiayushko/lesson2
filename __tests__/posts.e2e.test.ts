@@ -13,6 +13,7 @@ import {PostInputModel} from "../src/types/input-output-types/post-types";
 import {ObjectId} from "mongodb";
 import {createBlogTestRequest} from "./helpers/blogsUtils";
 import {fetchPostsWithPagingTest} from "./helpers/postsUtils";
+import {testingRequests} from "./testing/testingRequests";
 
 let PATH_POST = SETTINGS.PATH.POSTS;
 
@@ -33,7 +34,9 @@ describe("POST CREATE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app);
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be 401, invalid basic auth", async () => {
         let blogCreateResponse = await createBlog();
         expect(blogCreateResponse.status).toBe(StatusCode.CREATED_201);
@@ -335,7 +338,10 @@ describe("POST CREATE PROTECTED", () => {
 describe("POST UPDATE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app)
-    })
+    });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be 401, invalid basic auth", async () => {
         let blogCreateResponse = await createBlog();
         expect(blogCreateResponse.status).toBe(StatusCode.CREATED_201);
@@ -456,7 +462,10 @@ describe("POST UPDATE PROTECTED", () => {
 describe("POST DELETE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app)
-    })
+    });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be 401, invalid basic auth", async () => {
         let blogCreateResponse = await createBlog();
         expect(blogCreateResponse.status).toBe(StatusCode.CREATED_201);
@@ -523,7 +532,6 @@ describe("POST DELETE PROTECTED", () => {
 
 })
 
-
 describe("POST PUBLIC", () => {
     let blog = null; // Переменная для хранения  созданного блога
     beforeAll(async () => {
@@ -537,7 +545,9 @@ describe("POST PUBLIC", () => {
 
 
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
 
     it("Should be returns blog paging is default query params ", async () => {
 

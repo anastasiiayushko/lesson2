@@ -15,7 +15,9 @@ describe("Auth registration", () => {
     beforeEach(async () => {
         await testingRequests.resetAll();
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be return 204 create user and send email", async () => {
         let authRes = await authRequests.authRegistration(userNika);
         expect(authRes.status).toBe(StatusCode.NO_CONTENT_204);

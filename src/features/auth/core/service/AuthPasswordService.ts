@@ -6,14 +6,15 @@ import {add} from "date-fns";
 import {SETTINGS} from "../../../../settings";
 import {AuthRegSendEmailPort} from "../port/AuthRegSendEmailPort";
 import bcrypt from "bcrypt";
-import {injectable} from "inversify";
+import {inject, injectable} from "inversify";
+import {AuthRegSendEmailAdapter} from "../../adapter/AuthRegSendEmailAdapter";
 
 
 @injectable()
 export class AuthPasswordService {
 
     constructor(protected userRepository: UserRepository,
-                protected authSendEmailAdapter: AuthRegSendEmailPort) {
+                @inject(AuthRegSendEmailAdapter)protected authSendEmailAdapter: AuthRegSendEmailPort) {
     }
 
     async passwordRecovery(email: string): Promise<ServiceResponseType<null>> {
@@ -30,12 +31,13 @@ export class AuthPasswordService {
             email, {
                 expirationDate: add(new Date(), {
                     hours: SETTINGS.RECOVERY_PASSWORD_EXPIRATION_DATE_HOURS,
-                    minutes: SETTINGS.RECOVERY_PASSWORD_EXPIRATION_DATE_MIN
+                    minutes: SETTINGS.RECOVERY_PASSWORD_EXPIRATION_DATE_MIN,
+                    // seconds:
                 }),
                 recoveryCode: recoveryCode,
                 isConfirmed: false
             });
-        this.authSendEmailAdapter.recoveryPassword(email, recoveryCode);
+        this.authSendEmailAdapter.recoveryPassword(email, recoveryCode)
         return {
             status: StatusCode.NO_CONTENT_204,
             extensions: [],

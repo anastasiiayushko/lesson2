@@ -22,7 +22,9 @@ describe("User admin create", () => {
     beforeEach(async () => {
         await testingRequests.resetAll();
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it('Should return 401 if invalid header basic auth', async () => {
         let response = await userRequests.createUser(BASIC_INVALID_HEADER, userTest);
         expect(response.status).toBe(StatusCode.UNAUTHORIZED_401);

@@ -12,6 +12,7 @@ export type CreateCommentType = {
 }
 
 
+
 export interface CommentsRepository {
 
     createComment(dto: CreateCommentType): Promise<string>;

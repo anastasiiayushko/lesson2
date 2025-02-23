@@ -29,7 +29,9 @@ describe('Auth refresh token with update device session', () => {
         await userRequests.createUser(BASIC_VALID_HEADER, userNika);
         await userRequests.createUser(BASIC_VALID_HEADER, userIgor);
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it('Should be return 200 for update meta device', async () => {
         const loginRes = await authRequests.loginWithUserAgent(userNika.login, userNika.password, 'chrome')
         const cookies = Array.isArray(loginRes.headers['set-cookie']) ? loginRes.headers['set-cookie'] : [loginRes.headers['set-cookie']];

@@ -18,6 +18,9 @@ describe("Auth registration email confirmation", () => {
         SETTINGS.AUTH_EXPIRATION_DATE_MIN = 5;
         SETTINGS.AUTH_EXPIRATION_DATE_HOURS = 0;
     });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be return 204 and Email was verified. Account was activated", async () => {
         let authRes = await authRequests.authRegistration(userNika);
         expect(authRes.status).toBe(StatusCode.NO_CONTENT_204);

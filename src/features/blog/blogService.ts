@@ -1,7 +1,8 @@
 import {BlogRepository} from "./dal/blogRepository";
 import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-types/blog-types";
+import {injectable} from "inversify";
 
-
+@injectable()
 export class BlogService {
     constructor(private readonly blogRepository: BlogRepository) {}
 

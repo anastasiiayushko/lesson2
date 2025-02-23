@@ -22,7 +22,9 @@ describe('Auth logout', () => {
         await testingRequests.resetAll();
         await userRequests.createUser(BASIC_VALID_HEADER, userInSystem)
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it('Should be return 204 successful logout', async () => {
         let loginRes = await authRequests.login(userInSystem.login, userInSystem.password)
         const cookies = loginRes.headers['set-cookie'] as string[] | string;

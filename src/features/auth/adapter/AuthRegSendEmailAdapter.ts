@@ -36,7 +36,7 @@ export class AuthRegSendEmailAdapter implements AuthRegSendEmailPort {
         this.transporter.sendMail({
             from: '"Blogger Platform 👻" <dinaswebstudio2020@gmail.com>', // sender address
             to: emailTo, // list of receivers
-            subject: "Confirmed registration to Blogger platform ✔", // Subject line
+            subject: "Password recovery to Blogger platform ✔", // Subject line
             html: `<h1>Password recovery</h1>
        <p>To finish password recovery please follow the link below:
           <a href='https://somesite.com/password-recovery?recoveryCode=${confirmedCode}'>recovery password</a>

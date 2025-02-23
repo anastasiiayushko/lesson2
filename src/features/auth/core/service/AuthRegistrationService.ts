@@ -5,20 +5,19 @@ import {ServiceResponseType} from "../../../../types/service-response-type";
 import {StatusCode} from "../../../../types/status-code-types";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import {UserConfirmData} from "../dtos/userConfirmData";
-import {injectable} from "inversify";
+import {inject, injectable} from "inversify";
+import {AuthRegSendEmailAdapter} from "../../adapter/AuthRegSendEmailAdapter";
 
 
 @injectable()
 export class AuthRegistrationService {
 
-    constructor(protected authSendEmailAdapter: AuthRegSendEmailPort,
+    constructor(@inject(AuthRegSendEmailAdapter) protected authSendEmailAdapter: AuthRegSendEmailPort,
                 protected userService: UserService,
                 protected userRepository: UserRepository,
-    ) {
-    }
+    ) {}
 
     async registration(userInput: UserInputModel): Promise<ServiceResponseType> {
-
         let result = await this.userService.createUser(userInput, false);
         if (result.extensions?.length || !result.data) {
             return {
@@ -49,6 +48,7 @@ export class AuthRegistrationService {
                 extensions: [{field: "code", message: "confirmation code is incorrect"}]
             }
         }
+
         if ((new Date() > userByCode.emailConfirmation.expirationDate) || userByCode.emailConfirmation.isConfirmed) {
             return {
                 status: StatusCode.BAD_REQUEST_400,
@@ -81,7 +81,6 @@ export class AuthRegistrationService {
                 data: {isResending: false}
             }
         }
-
 
         let userResending = new UserConfirmData();
         await this.userRepository.updateEmailConfirmation(userResending, userByEmail.id);

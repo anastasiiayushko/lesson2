@@ -86,7 +86,7 @@ describe('Comment delete', () => {
         expect(commentByIdRes.body).toMatchObject<CommentViewModelType>(comment);
     })
 
-    it("Should return 401 if no token is provided", async () => {
+    it("Should return 401 if user Unauthorized", async () => {
         let nikaLoginResult = await authRequests.login(userNika.login, userNika.password);
         let tokenOwner = nikaLoginResult.body.accessToken;
         let commentBody = generateRandomStringForTest(50)
@@ -96,7 +96,7 @@ describe('Comment delete', () => {
         let comment = commentCreateRes.body;
         let tokenGust = await jwtService.createAccessToken(new ObjectId().toString())
 
-        let commentRes = await commentRequests.deleteComment(tokenGust, comment.id);
+        let commentRes = await commentRequests.deleteComment('', comment.id);
         expect(commentRes.status).toBe(StatusCode.UNAUTHORIZED_401);
     })
 

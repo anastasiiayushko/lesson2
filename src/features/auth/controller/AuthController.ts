@@ -173,7 +173,6 @@ export class AuthController {
             const recoveryCode = req.body.recoveryCode;
             const password = req.body.newPassword;
             const result = await this.authPasswordService.changePassword(password, recoveryCode);
-            console.log(result);
             res.sendStatus(result.status);
         } catch (e) {
 

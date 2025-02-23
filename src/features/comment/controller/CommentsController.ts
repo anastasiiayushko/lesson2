@@ -4,13 +4,14 @@ import {PostQueryRepository} from "../../post/dal/postQueryRepository";
 import {StatusCode} from "../../../types/status-code-types";
 import {CommentsQueryRepositoryMongo} from "../dal/CommentsQueryRepositoryMongo";
 import {CommentQueryInputType, commentQueryPagingDef} from "../helpers/commentQueryPagingDef";
-import {injectable} from "inversify";
+import {inject, injectable} from "inversify";
+import {CommentsQueryRepository} from "../dal/CommentsQueryRepository";
 
 @injectable()
 export class CommentsController {
 
     constructor(protected commentsService: CommentsService,
-                protected commentsQueryRepository: CommentsQueryRepositoryMongo,
+               @inject(CommentsQueryRepositoryMongo) protected commentsQueryRepository: CommentsQueryRepository,
                 protected postQueryRepository: PostQueryRepository,
     ) {
     }
@@ -37,7 +38,8 @@ export class CommentsController {
             res.status(StatusCode.CREATED_201).send(comment);
         } catch (error) {
             //@ts-ignore
-            res.send({error: error.message});
+            console.error('error', error);
+            res.send({error: error});
         }
 
 

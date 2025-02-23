@@ -41,6 +41,18 @@ export const authRequests = {
     logout: async (cookies: string[]): ResponseBodySuperTest<ApiErrorResultType | null> => {
         return await request(app).post(URL + '/logout').set('Cookie', cookies.join('; '))
 
-    }
+    },
+    passwordRecovery: async (email: string): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/password-recovery').send({email: email})
+    },
+    newPassword: async ({newPassword, recoveryCode}: {
+        newPassword: string,
+        recoveryCode: string
+    }): ResponseBodySuperTest<ApiErrorResultType | null> => {
+        return await request(app).post(URL + '/new-password').send({
+            newPassword: newPassword,
+            recoveryCode: recoveryCode
+        })
+    },
 
 }

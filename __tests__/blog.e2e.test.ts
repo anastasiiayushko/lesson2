@@ -14,6 +14,7 @@ import {ObjectId} from "mongodb";
 import {blogDataTest} from "../src/features/test/blogData";
 import {createBlogTestRequest, fetchBlogsWithPagingTest, fetchPostsByBlogIdWithPagingTest} from "./helpers/blogsUtils";
 import {createdPostsDataForBlogId} from "./helpers/postsUtils";
+import {testingRequests} from "./testing/testingRequests";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
@@ -36,7 +37,9 @@ describe("BLOG CREATE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app)
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Create blog invalid basic auth. should be status 401", async () => {
         await request(app)
             .post(PATH_BLOG)
@@ -176,6 +179,9 @@ describe("BLOG UPDATE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app);
     });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
 
     it("Update blog by id correct data. should be status 204", async () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
@@ -274,6 +280,9 @@ describe("BLOG DELETE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app);
     });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
 
     it("Delete blog invalid auth. should be status 401", async () => {
         let createdResponse = await createBlog(BLOG_INPUT_VALID);
@@ -333,6 +342,9 @@ describe("BLOG PUBLIC", () => {
     beforeEach(async () => {
         await resetTestData(app)
 
+    });
+    afterAll(async () => {
+        await testingRequests.resetAll();
     });
 
     it("Get a list blogs in empty collection. Should be status 200 and []", async () => {
@@ -442,7 +454,9 @@ describe("BLOG SORTING ", () => {
             .post(SETTINGS.PATH.TESTING + "/blogs/insert")
             .send(BLOGS_INSERT_SORTING);
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should sort blogs by name and direction asc", async () => {
         let pageSize = 10;
         const res = await fetchBlogsWithPagingTest(app, {sortBy: "name", sortDirection: "asc", pageSize: pageSize});
@@ -519,7 +533,9 @@ describe("BLOG. POSTS BY BLOG_ID WITH PAGING AND QUERY", () => {
         await createdPostsDataForBlogId(app, blogDb.id, postsData, authHeaderBasicValid);
         await createdPostsDataForBlogId(app, resSecond.body.id, postsData, authHeaderBasicValid);
     });
-
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be returns post paging is default query params ", async () => {
 
         let totalDocuments = postsData.length;

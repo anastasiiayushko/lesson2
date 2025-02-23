@@ -17,6 +17,9 @@ describe("Auth registration email resending", () => {
         SETTINGS.AUTH_EXPIRATION_DATE_MIN = 5;
         SETTINGS.AUTH_EXPIRATION_DATE_HOURS = 0;
     });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
     it("Should be return 204 and email resending.", async () => {
         let authRes = await authRequests.authRegistration(userNika);
         expect(authRes.status).toBe(StatusCode.NO_CONTENT_204);

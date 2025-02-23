@@ -25,6 +25,9 @@ describe('Device sessions create', () => {
         await userRequests.createUser(BASIC_VALID_HEADER, userNika);
         await userRequests.createUser(BASIC_VALID_HEADER, userIgor);
     });
+    afterAll(async () => {
+        await testingRequests.resetAll();
+    });
 
     it('Should be add new device session after successful login', async () => {
         let loginRes = await authRequests.loginWithUserAgent(userNika.login, userNika.password, 'chrome')

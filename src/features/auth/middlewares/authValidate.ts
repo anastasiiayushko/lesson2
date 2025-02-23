@@ -22,6 +22,7 @@ export const confirmRecoveryCodeValidator = body('recoveryCode')
 
 export const newPasswordValidate = body('newPassword')
     .isString().withMessage("filed to be string")
-    .trim().notEmpty().withMessage("filed is empty");
+    .trim().notEmpty().withMessage("filed is empty")
+    .isLength({min: 6, max: 20}).withMessage("field to be contain min 6 and max 20 symbols")
 
 export const authEmailValidator = body('email').isEmail()
