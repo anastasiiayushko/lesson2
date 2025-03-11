@@ -27,22 +27,22 @@ export class BlogController {
     async getBlogsWithPaging(req: Request<{}, {}, {}, {}>,
                              res: Response<PaginationViewModelType<BlogViewModelType>>) {
         const query: BlogQueryInputType = req.query as BlogQueryInputType;
-        let queryDef = blogQueryPagingDef(query);
-        let blogs = await this.blogQueryRepository.getBlogsQuery(queryDef);
+        const queryDef = blogQueryPagingDef(query);
+        const blogs = await this.blogQueryRepository.getBlogsQuery(queryDef);
         res.status(StatusCode.OK_200).json(blogs)
     }
 
     async getPostsByBlogIdWithPaging(req: Request<{ blogId: string }, {}, {}, {}>,
                                      res: Response<PaginationViewModelType<PostViewModel>>) {
-        let blogId = req.params.blogId as string;
-        let blog = await this.blogService.getById(blogId);
+        const blogId = req.params.blogId as string;
+        const blog = await this.blogService.getById(blogId);
         if (!blog) {
             res.sendStatus(StatusCode.NOT_FOUND_404);
             return;
         }
-        let query: PostQueryInputType = req.query as PostQueryInputType;
-        let queryDef = postQueryPagingDef(query);
-        let posts = await this.postQueryRepository.getPostQuery(queryDef, blogId);
+        const query: PostQueryInputType = req.query as PostQueryInputType;
+        const queryDef = postQueryPagingDef(query);
+        const posts = await this.postQueryRepository.getPostQuery(queryDef, blogId);
         res.status(StatusCode.OK_200).json(posts)
     }
 

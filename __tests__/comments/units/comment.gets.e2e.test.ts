@@ -10,6 +10,7 @@ import {commentRequests} from "../commentRequests";
 import {StatusCode} from "../../../src/types/status-code-types";
 import {CommentViewModelType} from "../../../src/features/comment/core/type/input-outup-commets";
 import {throttlingRateCollection} from "../../../src/db/db";
+import DataBaseMongoose from "../../../src/db/DataBaseMongoose";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
@@ -49,7 +50,15 @@ const postEntry: WithId<PostSchemaType>[] = [
         createdAt: new Date().toISOString()
     },
 ]
-
+const dbMongoose = new DataBaseMongoose();
+beforeAll(async () => {
+    console.log('starting dbMongoose');
+    await dbMongoose.connect(SETTINGS.MONGO_URL, SETTINGS.DATABASE_NAME)
+})
+afterAll(async () => {
+    console.log('closed dbMongoose');
+    await dbMongoose.disconnect()
+})
 describe('Comment get by id', () => {
     beforeAll(async () => {
         await testingRequests.resetAll();

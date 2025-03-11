@@ -1,13 +1,15 @@
 import {BlogRepository} from "./dal/blogRepository";
 import {BlogInputModelType, BlogViewModelType} from "../../types/input-output-types/blog-types";
 import {injectable} from "inversify";
+import {BlogModel, DtoCreateBlogType} from "./domain/blog.entity";
 
 @injectable()
 export class BlogService {
-    constructor(private readonly blogRepository: BlogRepository) {}
+    constructor(private readonly blogRepository: BlogRepository) {
+    }
 
 
-    private _mapperBodyBlog(body: BlogInputModelType): BlogInputModelType {
+    static transformBodyBlog(body: BlogInputModelType): BlogInputModelType {
         return {
             name: body.name,
             description: body.description,
@@ -19,22 +21,17 @@ export class BlogService {
         return await this.blogRepository.getById(id);
     }
 
-    async createBlog(body: BlogInputModelType): Promise<string> {
-        let createBlog = {
-            name: body.name,
-            description: body.description,
-            websiteUrl: body.websiteUrl,
-            createdAt: new Date().toISOString(),
-            isMembership: false,
-        }
+    async createBlog(body: DtoCreateBlogType): Promise<string> {
 
-        return await this.blogRepository.createBlog(createBlog);
+        const dto = BlogService.transformBodyBlog(body);
+        const blog = await BlogModel.createBlog(dto)
+        return blog._id.toString()
 
     }
 
-    async updateById(id: string, body: Omit<BlogInputModelType, 'createdAt' | 'isMembership'>): Promise<boolean> {
-        let blogUpdate = this._mapperBodyBlog(body)
-        return await this.blogRepository.updateById(id, blogUpdate);
+    async updateById(id: string, body: BlogInputModelType): Promise<boolean> {
+
+        return await this.blogRepository.updateById(id, BlogService.transformBodyBlog(body));
 
     }
 

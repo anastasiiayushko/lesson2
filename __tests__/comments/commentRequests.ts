@@ -5,6 +5,7 @@ import {CommentViewModelType} from "../../src/features/comment/core/type/input-o
 import {ApiErrorResultType} from "../../src/types/output-error-types";
 import {CommentQueryInputType} from "../../src/features/comment/helpers/commentQueryPagingDef";
 import {PaginationViewModelType} from "../../src/types/input-output-types/pagination-output-types";
+import DataBaseMongoose from "../../src/db/DataBaseMongoose";
 
 const URL = SETTINGS.PATH.COMMENTS;
 const URL_POSTS = SETTINGS.PATH.POSTS;

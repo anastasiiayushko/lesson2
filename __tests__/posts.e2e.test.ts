@@ -14,6 +14,7 @@ import {ObjectId} from "mongodb";
 import {createBlogTestRequest} from "./helpers/blogsUtils";
 import {fetchPostsWithPagingTest} from "./helpers/postsUtils";
 import {testingRequests} from "./testing/testingRequests";
+import DataBaseMongoose from "../src/db/DataBaseMongoose";
 
 let PATH_POST = SETTINGS.PATH.POSTS;
 
@@ -30,6 +31,17 @@ const createPost = async (postData: PostInputModel | {}, basicAuth = authHeaderB
         .set({'Authorization': basicAuth})
         .send(postData);
 }
+
+const dbMongoose = new DataBaseMongoose();
+beforeAll(async () => {
+    console.log('starting dbMongoose');
+    await dbMongoose.connect(SETTINGS.MONGO_URL, SETTINGS.DATABASE_NAME)
+})
+afterAll(async () => {
+    console.log('closed dbMongoose');
+    await dbMongoose.disconnect()
+})
+
 describe("POST CREATE PROTECTED", () => {
     beforeEach(async () => {
         await resetTestData(app);

@@ -4,19 +4,20 @@ import {ServiceResponseType} from "../../../../types/service-response-type";
 import {StatusCode} from "../../../../types/status-code-types";
 import {PostRepository} from "../../../post/dal/postRepository";
 import {UserRepository} from "../../../user/dal/UserRepository";
-import createCommentDto from "../dtos/createComment";
 import {inject, injectable} from "inversify";
 import {CommentsRepositoryMongo} from "../../dal/CommentsRepositoryMongo";
+import {ErrorItemType} from "../../../../types/output-error-types";
+import {BaseModel} from "../../../../shared/model/BaseModel";
 
 type CreatedResponse = string | null;
 
 @injectable()
 export class CommentsService {
     constructor(readonly postRepository: PostRepository, protected userRepository: UserRepository,
-                @inject(CommentsRepositoryMongo)protected commentsRepository: CommentsRepository) {
+                @inject(CommentsRepositoryMongo) protected commentsRepository: CommentsRepository) {
     }
 
-    async createComment  (postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>>  {
+    async createComment(postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>> {
 
         let post = await this.postRepository.getById(postId);
         if (!post) {
@@ -32,17 +33,31 @@ export class CommentsService {
                 data: null, extensions: [], errorMessage: "Not found user by id"
             }
         }
-        let dto = createCommentDto(postId, user.id, user.login, commentBody);
-        let commentId = await this.commentsRepository.createComment(dto);
-        return {
-            status: StatusCode.CREATED_201,
-            data: commentId,
-            extensions: []
+        try {
+            let commentId = await this.commentsRepository.createComment({
+                postId: postId,
+                userId: userId,
+                userLogin: user.login,
+                content: commentBody
+            });
+            return {
+                status: StatusCode.CREATED_201,
+                data: commentId,
+                extensions: []
+            }
+        } catch (err: unknown) {
+
+            const exceptions: ErrorItemType[] = BaseModel.formatValidationError(err);
+            const status = BaseModel.formatValidationError(err) ? StatusCode.BAD_REQUEST_400 : StatusCode.SERVER_ERROR;
+            return {
+                status: status,
+                data: null,
+                extensions: exceptions
+            }
         }
-
-
     }
-    async updateComment  (commentId: string, commentBody: string, userId: string): Promise<ServiceResponseType>  {
+
+    async updateComment(commentId: string, commentBody: string, userId: string): Promise<ServiceResponseType> {
         let findComment = await this.commentsRepository.getComment(commentId);
         if (!findComment) {
             return {
@@ -63,7 +78,8 @@ export class CommentsService {
         }
 
     }
-    async deleteComment  (commentId: string, userId: string): Promise<ServiceResponseType>  {
+
+    async deleteComment(commentId: string, userId: string): Promise<ServiceResponseType> {
         let comment = await this.commentsRepository.getComment(commentId);
         if (!comment) {
             return {
@@ -84,7 +100,8 @@ export class CommentsService {
             extensions: [], data: null
         }
     }
-    async getComment  (commentId: string): Promise<CommentViewModelType | null>  {
+
+    async getComment(commentId: string): Promise<CommentViewModelType | null> {
         let comment = await this.commentsRepository.getComment(commentId);
         return comment;
     }

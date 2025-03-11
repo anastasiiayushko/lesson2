@@ -3,7 +3,7 @@ import {PaginationViewModelType} from "../../../types/input-output-types/paginat
 import {CommentQueryInputType} from "../helpers/commentQueryPagingDef";
 
 export interface CommentsQueryRepository {
-    getCommentById(id: string): Promise<CommentViewModelType | null>;
+    getCommentById(id: string, userId: string | null): Promise<CommentViewModelType | null>;
 
     getCommentsByPostWithPaging(postId: string, query:CommentQueryInputType): Promise<PaginationViewModelType<CommentViewModelType>>
 }

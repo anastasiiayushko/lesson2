@@ -1,21 +1,26 @@
 
 import {CommentViewModelType} from "../core/type/input-outup-commets";
+import {ICommentCreateInput} from "../domain/comment-entity";
 
-export type CreateCommentType = {
-    postId: string,
-    commentatorInfo: {
-        userId: string,
-        userLogin: string,
-    }
-    content: string,
-    createdAt: string,
-}
+// export type CreateCommentType = {
+//     postId: string,
+//     commentatorInfo: {
+//         userId: string,
+//         userLogin: string,
+//     }
+//     content: string,
+//     createdAt: string,
+//     likesInfo: {
+//         likesCount: number,
+//         dislikesCount: number,
+//     }
+// }
 
 
 
 export interface CommentsRepository {
 
-    createComment(dto: CreateCommentType): Promise<string>;
+    createComment(dto: ICommentCreateInput): Promise<string>;
 
     updateComment(commentId: string, content: string ): Promise<boolean>;
 

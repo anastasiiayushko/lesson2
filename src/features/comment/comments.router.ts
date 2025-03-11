@@ -14,4 +14,6 @@ commentRouter.get('/:id', commentsController.getCommentById.bind(commentsControl
 commentRouter.put('/:commentId', tokenAuthMiddleware, ...commentValidate, validateInputMiddleware, commentsController.updateCommentsById.bind(commentsController));
 commentRouter.delete('/:commentId', tokenAuthMiddleware, commentsController.deleteCommentById.bind(commentsController));
 
+
+
 export default commentRouter;

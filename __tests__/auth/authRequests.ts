@@ -1,7 +1,6 @@
 import request, {Response} from "supertest";
 import {app} from "../../src/app";
 import {SETTINGS} from "../../src/settings";
-import {BlogSchemaType} from "../../src/db/types/db-blog-type";
 import {UserAuthMeModelViewType, UserInputModel} from "../../src/types/input-output-types/user-types";
 import {ApiErrorResultType} from "../../src/types/output-error-types";
 
@@ -22,8 +21,8 @@ export const authRequests = {
         return res;
 
     },
-    me: async (blogEntry: BlogSchemaType[]): ResponseBodySuperTest<UserAuthMeModelViewType> => {
-        return await request(app).post(URL + '/me').send(blogEntry)
+    me: async (): ResponseBodySuperTest<UserAuthMeModelViewType> => {
+        return await request(app).get(URL + '/me')
     },
     authRegistration: async (userInput: UserInputModel): ResponseBodySuperTest<ApiErrorResultType | null> => {
         return await request(app).post(URL + '/registration').send(userInput)

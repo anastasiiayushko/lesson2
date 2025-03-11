@@ -36,16 +36,17 @@ export const throttlingRateCollection: Collection<DbThrottlingRateType> = db.col
 
 async function setupIndexes() {
     await db.collection(SETTINGS.DB_COLLECTION_NAME.THROTTLING_RATE).createIndex(
-        { date: 1 },
-        { expireAfterSeconds: 60 } // Удаление через 1 час 60*60 = 1hourse
+        {date: 1},
+        {expireAfterSeconds: 60} // Удаление через 1 час 60*60 = 1hourse
     );
     console.log("TTL-индекс установлен");
 }
+
 export const connectionDB = async (): Promise<boolean> => {
     try {
         await client.connect();
         // await setupIndexes()
-        console.log("Connected database...");
+        console.log("Connected database mongoClient...");
         return true
     } catch (error) {
         console.log("Unable to connect to database...");

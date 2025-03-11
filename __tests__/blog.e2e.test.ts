@@ -15,6 +15,8 @@ import {blogDataTest} from "../src/features/test/blogData";
 import {createBlogTestRequest, fetchBlogsWithPagingTest, fetchPostsByBlogIdWithPagingTest} from "./helpers/blogsUtils";
 import {createdPostsDataForBlogId} from "./helpers/postsUtils";
 import {testingRequests} from "./testing/testingRequests";
+import DataBaseMongoose from "../src/db/DataBaseMongoose";
+import {db} from "../src/db/db";
 
 
 let PATH_BLOG = SETTINGS.PATH.BLOGS;
@@ -31,6 +33,16 @@ const createBlog = async (blogData: BlogInputModelType | {} = BLOG_INPUT_VALID, 
 const RESPONSE_DATA_WITH_PAGING = (items = []) => {
     return {pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: items}
 }
+
+const dbMongoose = new DataBaseMongoose();
+beforeAll(async () => {
+    console.log('starting dbMongoose');
+    await dbMongoose.connect(SETTINGS.MONGO_URL, SETTINGS.DATABASE_NAME)
+})
+afterAll(async () => {
+    console.log('closed dbMongoose');
+    await dbMongoose.disconnect()
+})
 
 describe("BLOG CREATE PROTECTED", () => {
 
@@ -174,6 +186,7 @@ describe("BLOG CREATE PROTECTED", () => {
     })
 
 });
+
 describe("BLOG UPDATE PROTECTED", () => {
 
     beforeEach(async () => {
@@ -335,7 +348,6 @@ describe("BLOG DELETE PROTECTED", () => {
         expect(resGet.body).toEqual(RESPONSE_DATA_WITH_PAGING([]));
     });
 });
-
 
 describe("BLOG PUBLIC", () => {
 

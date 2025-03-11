@@ -1,22 +1,10 @@
 import {SortDirectionsType} from "./db-types";
-import {ObjectId} from "mongodb";
+import {WithId} from "mongodb";
+import {IBlog} from "../../features/blog/domain/blog.entity";
 
-export type BlogSchemaType = {
-    _id: ObjectId
-    name: string // max 15
-    description: string // max 500
-    websiteUrl: string // max 100 ^https://([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$
-    createdAt: string
-    isMembership: boolean
-}
 
-export type BlogCreateSchemaType = {
-    name: string // max 15
-    description: string // max 500
-    websiteUrl: string // max 100 ^https://([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$
-    createdAt: string
-    isMembership: boolean
-}
+export type BlogSchemaType = WithId<IBlog>
+
 
 export type BlogSchemaInputType = {
     name: string // max 15

@@ -6,6 +6,7 @@ import {CommentsQueryRepositoryMongo} from "../dal/CommentsQueryRepositoryMongo"
 import {CommentQueryInputType, commentQueryPagingDef} from "../helpers/commentQueryPagingDef";
 import {inject, injectable} from "inversify";
 import {CommentsQueryRepository} from "../dal/CommentsQueryRepository";
+import {jwtService} from "../../../app/jwtService";
 
 @injectable()
 export class CommentsController {
@@ -19,22 +20,25 @@ export class CommentsController {
     createComment = async (req: Request<{ postId: string }>,
                            res: Response) => {
         try {
-            let userId = req!.userId;
+            let userId = req!.userId as string;
             let postId = req.params.postId;
             let commentBody = req.body.content;
-
-            if (!userId) {
-                res.sendStatus(StatusCode.UNAUTHORIZED_401);
-                return;
-            }
+            //
+            // if (!userId) {
+            //     res.sendStatus(StatusCode.UNAUTHORIZED_401);
+            //     return;
+            // }
 
             let result = await this.commentsService.createComment(postId, commentBody, userId);
-            if (!result.data) {
+            if(result.status !== StatusCode.CREATED_201){
+                if(Array.isArray(result.extensions) && result.extensions.length > 0){
+                    res.status(result.status).send({errorsMessages: result.extensions});
+                }
                 res.sendStatus(result.status);
                 return;
             }
 
-            let comment = await this.commentsQueryRepository.getCommentById(result.data);
+            let comment = await this.commentsQueryRepository.getCommentById(result!.data as string, userId);
             res.status(StatusCode.CREATED_201).send(comment);
         } catch (error) {
             //@ts-ignore
@@ -57,7 +61,14 @@ export class CommentsController {
         res.sendStatus(result.status);
     }
     getCommentById = async (req: Request<{ id: string }>, res: Response) => {
-        let comment = await this.commentsQueryRepository.getCommentById(req.params.id);
+        const authorization = req.headers['authorization'] || '';
+        let token = authorization.split(' ')?.[1];
+        if (!token) {
+            throw new Error(`${StatusCode.UNAUTHORIZED_401}`)
+        }
+        const decode = await jwtService.verifyAccessToken(token);
+        const userId = decode?.userId ?? null;
+        let comment = await this.commentsQueryRepository.getCommentById(req.params.id, userId);
         if (!comment) {
             res.sendStatus(StatusCode.NOT_FOUND__404);
             return

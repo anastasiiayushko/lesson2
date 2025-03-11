@@ -1,32 +1,30 @@
-import {blogCollection} from "../../../db/db";
-
-import {BlogQueryInputType, BlogSchemaType} from "../../../db/types/db-blog-type";
+import {BlogQueryInputType} from "../../../db/types/db-blog-type";
 import {BlogViewModelType} from "../../../types/input-output-types/blog-types";
-import {ObjectId} from "mongodb";
+import {WithId} from "mongodb";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 import {injectable} from "inversify";
+import {BlogModel, IBlog} from "../domain/blog.entity";
 
 
 @injectable()
 export class BlogQueryRepository {
 
-    _mapperBlog(item: BlogSchemaType): BlogViewModelType {
+    static mapperBlog(item: WithId<IBlog>): BlogViewModelType {
         return {
             id: item._id.toString(),
             name: item.name,
             description: item.description,
             websiteUrl: item.websiteUrl,
             isMembership: item.isMembership,
-            createdAt: item.createdAt,
+            createdAt: new Date(item.createdAt).toISOString(),
         }
     }
 
     async getById(id: string): Promise<BlogViewModelType | null> {
-        let blog = await blogCollection.findOne({_id: new ObjectId(id)});
-        if (!blog) {
-            return null
-        }
-        return this._mapperBlog(blog)
+
+        const blog = await BlogModel.findOne({_id: id}).lean();
+
+        return blog ? BlogQueryRepository.mapperBlog(blog) : null
 
     }
 
@@ -42,14 +40,14 @@ export class BlogQueryRepository {
         let page = +query.pageNumber;
         let skip: number = (page - 1) * limit;
 
-        let items = await blogCollection.find(filter)
+        let items = await BlogModel.find(filter)
             .sort({[sortBy]: sortingDirection})
             .skip(skip)
             .limit(limit)
-            .toArray();
+            .lean();
 
         // Подсчёт общего количества документов
-        let totalCount = await blogCollection.countDocuments(filter);
+        let totalCount = await BlogModel.countDocuments(filter);
         let pagesCount = Math.ceil(totalCount / limit);
 
         return {
@@ -57,7 +55,7 @@ export class BlogQueryRepository {
             page: page,
             pageSize: limit,
             totalCount: totalCount,
-            items: items.map(this._mapperBlog)
+            items: items.map(BlogQueryRepository.mapperBlog)
         }
 
     }

@@ -7,6 +7,7 @@ import {ObjectId, WithId} from "mongodb";
 import {PostSchemaType} from "../../../src/db/types/db-post-type";
 import {authRequests} from "../../auth/authRequests";
 import {commentRequests} from "../commentRequests";
+import DataBaseMongoose from "../../../src/db/DataBaseMongoose";
 
 const BASIC_VALID_HEADER = getAuthHeaderBasicTest(SETTINGS.ADMIN)
 
@@ -37,7 +38,15 @@ const postEntry: WithId<PostSchemaType>[] = [
         createdAt: new Date().toISOString()
     }
 ]
-
+const dbMongoose = new DataBaseMongoose();
+beforeAll(async () => {
+    console.log('starting dbMongoose');
+    await dbMongoose.connect(SETTINGS.MONGO_URL, SETTINGS.DATABASE_NAME)
+})
+afterAll(async () => {
+    console.log('closed dbMongoose');
+    await dbMongoose.disconnect()
+})
 describe('Comments paging', () => {
     beforeAll(async () => {
         await testingRequests.resetAll();
