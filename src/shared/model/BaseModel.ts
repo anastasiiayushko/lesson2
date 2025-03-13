@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
+import {ErrorItemType} from "../../types/output-error-types";
 
 export class BaseModel {
-    static  formatValidationError(error: unknown) {
+    static  formatValidationError(error: unknown):ErrorItemType[] {
         if (error instanceof mongoose.Error.ValidationError) {
             return Object.keys(error.errors).map(field => ({
                 field,

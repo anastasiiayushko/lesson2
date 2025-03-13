@@ -5,5 +5,5 @@ import {CommentQueryInputType} from "../helpers/commentQueryPagingDef";
 export interface CommentsQueryRepository {
     getCommentById(id: string, userId: string | null): Promise<CommentViewModelType | null>;
 
-    getCommentsByPostWithPaging(postId: string, query:CommentQueryInputType): Promise<PaginationViewModelType<CommentViewModelType>>
+    getCommentsByPostWithPaging(postId: string, query:CommentQueryInputType,  userId: string | null): Promise<PaginationViewModelType<CommentViewModelType>>
 }

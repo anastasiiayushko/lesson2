@@ -11,26 +11,24 @@ import {likeModel, LikeStatusEnum} from "../../like/domain/like.entity";
 
 @injectable()
 export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
+    //
     async getCommentById(id: string, userId: string | null): Promise<CommentViewModelType | null> {
-
         const comment = await commentModel.findById(id);
-        // let comment = await commentCollection.findOne({_id: new ObjectId(id)});
         if (!comment) {
             return null;
         }
         let status = LikeStatusEnum.None;
-        if(userId){
-            const like = await likeModel.findOne({authorId:userId, parentId: id});
-            if(like){
-                //@ts-ignore
+        if (userId) {
+            const like = await likeModel.findOne({authorId: userId, parentId: id}).lean();
+            if (like) {
                 status = like.status;
             }
+
         }
         return mappedCommentDbToView(comment, status);
     }
 
-    async getCommentsByPostWithPaging(postId: string, query: CommentQueryInputType):
-        Promise<PaginationViewModelType<CommentViewModelType>> {
+    async getCommentsByPostWithPaging(postId: string, query: CommentQueryInputType, userId: string | null): Promise<any> {
         let sortBy = query.sortBy as string;
         let sortingDirection = query.sortDirection;
         let limit = +query.pageSize;
@@ -44,24 +42,35 @@ export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
             .skip(skip)
             .limit(limit)
             .lean();
-        //
-        // let items = await commentCollection.find(findFilter)
-        //     .sort({[sortBy]: sortingDirection})
-        //     .skip(skip)
-        //     .limit(limit)
-        //     .toArray();
 
         // Подсчёт общего количества документов
-        let totalCount = await commentModel.countDocuments(findFilter);
-        let pagesCount = Math.ceil(totalCount / limit);
+        const totalCount = await commentModel.countDocuments(findFilter);
+        const pagesCount = Math.ceil(totalCount / limit);
+
+        let userLikesMap = new Map<string, LikeStatusEnum>();
+        if (userId) {
+            const commentIds = items.map((comment) => comment._id.toString());
+
+            // Найти все лайки, которые поставил пользователь для данных комментариев
+            const userLikes = await likeModel
+                .find({authorId: userId, parentId: {$in: commentIds}})
+                .lean();
+
+            // Создаем Map для быстрого поиска лайков по commentId
+            userLikes.forEach((like) => {
+                userLikesMap.set(like.parentId.toString(), like.status);
+            });
+        }
+
 
         return {
             pagesCount: pagesCount,
             page: page,
             pageSize: limit,
             totalCount: totalCount,
-            items: items.map((item)=>{
-                return mappedCommentDbToView(item, LikeStatusEnum.None)
+            items: items.map((item) => {
+                const likeStatus = userLikesMap.get(item._id.toString()) ?? LikeStatusEnum.None;
+                return mappedCommentDbToView(item, likeStatus);
             })
         }
 

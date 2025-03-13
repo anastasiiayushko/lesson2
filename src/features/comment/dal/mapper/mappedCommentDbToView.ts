@@ -2,9 +2,9 @@ import {CommentViewModelType} from "../../core/type/input-outup-commets";
 import {WithId} from "mongodb";
 import {IComment} from "../../domain/comment-entity";
 import {LikeStatusEnum} from "../../../like/domain/like.entity";
-import {link} from "node:fs";
 
-export const mappedCommentDbToView = (comment: WithId<IComment>, likeMyStatus: LikeStatusEnum.Like | LikeStatusEnum.None | LikeStatusEnum.Dislike): CommentViewModelType => {
+
+export const mappedCommentDbToView = (comment: WithId<IComment>, likeMyStatus: LikeStatusEnum): CommentViewModelType => {
     return {
         id: comment._id.toString(),
         content: comment.content,

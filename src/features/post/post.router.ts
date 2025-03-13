@@ -9,6 +9,7 @@ import {commentValidate} from "../comment/middlewares/commentValidate";
 import {tokenAuthMiddleware} from "../../middlewares/tokenAuthMiddleware";
 import {commentsQueryValidate} from "../comment/middlewares/commentQueryValidate";
 import {container} from "../../inversify.config";
+import {extractUserIdMiddleware} from "../../middlewares/extractUserIdMiddleware";
 
 export const postRouter = Router();
 
@@ -19,7 +20,7 @@ const commentsController = container.resolve(CommentsController);
 
 postRouter.get('/', ...postQueryValidate, validateInputMiddleware, postController.getPostsWithPaging.bind(postController));
 postRouter.get('/:id', postController.getPost.bind(postController));
-postRouter.get('/:postId/comments', ...commentsQueryValidate, validateInputMiddleware, commentsController.getCommentsByPostIdWithPaging.bind(commentsController));
+postRouter.get('/:postId/comments', ...commentsQueryValidate, validateInputMiddleware, extractUserIdMiddleware, commentsController.getCommentsByPostIdWithPaging.bind(commentsController));
 
 
 //protected

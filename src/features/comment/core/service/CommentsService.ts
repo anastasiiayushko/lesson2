@@ -1,20 +1,23 @@
 import {CommentsRepository} from "../../dal/CommentsRepository";
-import {CommentViewModelType} from "../type/input-outup-commets";
 import {ServiceResponseType} from "../../../../types/service-response-type";
 import {StatusCode} from "../../../../types/status-code-types";
 import {PostRepository} from "../../../post/dal/postRepository";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import {inject, injectable} from "inversify";
 import {CommentsRepositoryMongo} from "../../dal/CommentsRepositoryMongo";
-import {ErrorItemType} from "../../../../types/output-error-types";
 import {BaseModel} from "../../../../shared/model/BaseModel";
+import {commentModel} from "../../domain/comment-entity";
+import {LikeService} from "../../../like/application/like.service";
+import {LikeStatusEnum} from "../../../like/domain/like.entity";
 
 type CreatedResponse = string | null;
 
 @injectable()
 export class CommentsService {
     constructor(readonly postRepository: PostRepository, protected userRepository: UserRepository,
-                @inject(CommentsRepositoryMongo) protected commentsRepository: CommentsRepository) {
+                @inject(CommentsRepositoryMongo) protected commentsRepository: CommentsRepository,
+                protected likeService: LikeService
+    ) {
     }
 
     async createComment(postId: string, commentBody: string, userId: string): Promise<ServiceResponseType<CreatedResponse>> {
@@ -47,7 +50,7 @@ export class CommentsService {
             }
         } catch (err: unknown) {
 
-            const exceptions: ErrorItemType[] = BaseModel.formatValidationError(err);
+            const exceptions = BaseModel.formatValidationError(err);
             const status = BaseModel.formatValidationError(err) ? StatusCode.BAD_REQUEST_400 : StatusCode.SERVER_ERROR;
             return {
                 status: status,
@@ -58,36 +61,36 @@ export class CommentsService {
     }
 
     async updateComment(commentId: string, commentBody: string, userId: string): Promise<ServiceResponseType> {
-        let findComment = await this.commentsRepository.getComment(commentId);
-        if (!findComment) {
+        const comment = await commentModel.findById({_id: commentId});
+        if (!comment) {
             return {
                 status: StatusCode.NOT_FOUND__404,
                 extensions: [], data: null
             }
         }
-        if (findComment.commentatorInfo.userId !== userId) {
+        if (comment.commentatorInfo.userId.toString() !== userId) {
             return {
                 status: StatusCode.FORBIDDEN_403,
                 extensions: [], data: null
             }
         }
-        await this.commentsRepository.updateComment(commentId, commentBody);
+        comment.content = commentBody;
+        await this.commentsRepository.save(comment);
         return {
             status: StatusCode.NO_CONTENT_204,
             extensions: [], data: null
         }
-
     }
 
     async deleteComment(commentId: string, userId: string): Promise<ServiceResponseType> {
-        let comment = await this.commentsRepository.getComment(commentId);
+        const comment = await this.commentsRepository.getComment(commentId);
         if (!comment) {
             return {
                 status: StatusCode.NOT_FOUND__404, extensions: [], data: null
 
             }
         }
-        if (comment.commentatorInfo.userId !== userId) {
+        if (comment.commentatorInfo.userId.toString() !== userId) {
             return {
                 status: StatusCode.FORBIDDEN_403,
                 extensions: [], data: null
@@ -95,15 +98,42 @@ export class CommentsService {
         }
 
         await this.commentsRepository.deleteComment(commentId);
+        await this.likeService.deleteLikeByParentId(commentId);
         return {
             status: StatusCode.NO_CONTENT_204,
             extensions: [], data: null
         }
     }
 
-    async getComment(commentId: string): Promise<CommentViewModelType | null> {
-        let comment = await this.commentsRepository.getComment(commentId);
-        return comment;
+
+    async updateLikeStatusForCommentAndRecalculate(commentId: string, userId:string, likeStatus: LikeStatusEnum): Promise<ServiceResponseType> {
+        const comment = await commentModel.findById({_id: commentId});
+
+        if (!comment) {
+            return {
+                status: StatusCode.NOT_FOUND_404,
+                extensions: [], data: null
+            };
+        }
+        const likeResult = await this.likeService.setStatus(commentId, userId, likeStatus);
+        console.log('likeResult', likeResult);
+        if(likeResult.status === StatusCode.BAD_REQUEST_400 || likeResult.status === StatusCode.SERVER_ERROR || likeResult.extensions.length>0) {
+            return {
+                status: StatusCode.BAD_REQUEST_400,
+                extensions: likeResult.extensions,
+                data: null
+            }
+        }
+        const calculateLikes = await this.likeService.calculateLikeStatusByParentId(commentId);
+        comment.likesInfo ={
+            likesCount: calculateLikes.likesCount,
+            dislikesCount: calculateLikes.dislikesCount
+        }
+        await this.commentsRepository.save(comment)
+        return {
+            status: StatusCode.NO_CONTENT_204,
+            extensions: [], data: null
+        }
     }
 
 }
