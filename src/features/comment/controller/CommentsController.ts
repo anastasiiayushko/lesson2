@@ -1,11 +1,11 @@
 import {Request, Response} from "express";
 import {CommentsService} from "../core/service/CommentsService";
-import {PostQueryRepository} from "../../post/dal/postQueryRepository";
 import {StatusCode} from "../../../types/status-code-types";
 import {CommentsQueryRepositoryMongo} from "../dal/CommentsQueryRepositoryMongo";
 import {CommentQueryInputType, commentQueryPagingDef} from "../helpers/commentQueryPagingDef";
 import {inject, injectable} from "inversify";
 import {CommentsQueryRepository} from "../dal/CommentsQueryRepository";
+import { PostQueryRepository } from "../../post/infrastructure/repositories/postQueryRepository";
 
 @injectable()
 export class CommentsController {
@@ -18,17 +18,21 @@ export class CommentsController {
 
     async setLikeComment(req: Request, res: Response) {
         try {
+            console.log('setLikeComment');
             const commentId = req.params.commentId;
             const userId = req!.userId as string;
             const likeStatus = req.body.likeStatus;
 
             const reslut = await this.commentsService.updateLikeStatusForCommentAndRecalculate(commentId, userId, likeStatus)
+            console.log('result')
             if (reslut.extensions.length > 0) {
+                console.log('error')
                 res.status(reslut.status).json({
                     errorsMessages: reslut.errorMessage
                 })
+                return;
             }
-            res.status(reslut.status);
+            res.sendStatus(reslut.status);
 
         } catch (e: unknown) {
             //@ts-ignore

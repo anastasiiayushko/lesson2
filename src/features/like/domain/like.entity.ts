@@ -11,6 +11,7 @@ export interface ILike {
     status: LikeStatusEnum;
     createdAt: Date,
     authorId: Schema.Types.ObjectId;
+    authorName: Schema.Types.String;
     parentId: Schema.Types.ObjectId; // commentId, postId, etc..
 }
 
@@ -19,6 +20,7 @@ export type LikeDocument = HydratedDocument<ILike>;
 type CreateLikeInput = {
     status: LikeStatusEnum;
     authorId: string;
+    authorName: string;
     parentId: string;
 }
 
@@ -35,24 +37,26 @@ const likeSchema = new Schema<ILike>({
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
+        default: new Date(),
     },
+
     parentId: {type: Schema.Types.ObjectId, required: true},
     authorId: {type: Schema.Types.ObjectId, required: true},
+    authorName: {type: Schema.Types.String, required: true},
 }, {versionKey: false});
 
 
-likeSchema.static('createLike', function createLike(dto: CreateLikeInput) {
-    // if (dto.status !== LikeStatusEnum.None) {
-    //     return
-    // }
-    return this.create({
+likeSchema.static('createLike',  function createLike(dto: CreateLikeInput) {
+
+    return new LikeModel({
+        _id: new ObjectId(),
         status: dto.status,
         authorId: new ObjectId(dto.authorId),
+        authorName: dto.authorName,
         parentId: new ObjectId(dto.parentId),
         createdAt: new Date(),
     });
 });
 
 
-export const likeModel = model<ILike, ILikeModel>('likes', likeSchema);
+export const LikeModel = model<ILike, ILikeModel>('likes', likeSchema);

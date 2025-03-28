@@ -1,27 +1,28 @@
 import {Request, Response} from "express";
 import {BlogInputModelType, BlogViewModelType} from "../../../types/input-output-types/blog-types";
-import {StatusCode} from "../../../types/status-code-types";
+import {isStatusNotFound, StatusCode} from "../../../types/status-code-types";
 import {BlogService} from "../blogService";
-import {PostService} from "../../post/service/postService";
 import {PostInputModel, PostViewModel} from "../../../types/input-output-types/post-types";
 import {BlogQueryInputType} from "../../../db/types/db-blog-type";
 import {blogQueryPagingDef} from "../helpers/blogQueryPagingDef";
 import {PostQueryInputType} from "../../../db/types/db-post-type";
 import {postQueryPagingDef} from "../../post/helpers/postQueryPagingDef";
-import {PostQueryRepository} from "../../post/dal/postQueryRepository";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 import {BlogQueryRepository} from "../dal/blogQueryRepository";
 import {injectable} from "inversify";
+import {PostQueryRepository} from "../../post/infrastructure/repositories/postQueryRepository";
+import CreatePostUseCase from "../../post/application/use-case/СreatePostUseCase";
 
 
 @injectable()
 export class BlogController {
 
 
-    constructor(protected postService: PostService,
-                protected blogService: BlogService,
-                protected postQueryRepository: PostQueryRepository,
-                protected blogQueryRepository: BlogQueryRepository) {
+    constructor(
+        protected createPostUseCase: CreatePostUseCase,
+        protected blogService: BlogService,
+        protected postQueryRepository: PostQueryRepository,
+        protected blogQueryRepository: BlogQueryRepository) {
     }
 
     async getBlogsWithPaging(req: Request<{}, {}, {}, {}>,
@@ -42,7 +43,8 @@ export class BlogController {
         }
         const query: PostQueryInputType = req.query as PostQueryInputType;
         const queryDef = postQueryPagingDef(query);
-        const posts = await this.postQueryRepository.getPostQuery(queryDef, blogId);
+        const userId = req.userId;
+        const posts = await this.postQueryRepository.getPostQuery(queryDef, blogId, userId);
         res.status(StatusCode.OK_200).json(posts)
     }
 
@@ -64,12 +66,14 @@ export class BlogController {
     }, {}, PostInputModel>, res: Response<PostViewModel>) {
         let blogId = req.params.blogId;
         let body = {...req.body, blogId: blogId};
-        let postId = await this.postService.createPost(body);
-        if (!postId) {
+
+        const postResult = await this.createPostUseCase.execute(body);
+
+        if (isStatusNotFound(postResult.status)) {
             res.sendStatus(StatusCode.NOT_FOUND_404)
             return
         }
-        let post = await this.postQueryRepository.getById(postId);
+        const post = await this.postQueryRepository.getById(postResult.data!.id);
         res.status(StatusCode.CREATED_201).json(post!);
 
     }

@@ -7,7 +7,6 @@ import {ApiErrorResultType} from "../../../types/output-error-types";
 import {userQueryPagingDef} from "../helpers/userQueryPagingDef";
 import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 import {injectable} from "inversify";
-import {PostService} from "../../post/service/postService";
 
 @injectable()
 export class UserController {

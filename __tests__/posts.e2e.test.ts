@@ -118,7 +118,7 @@ describe("POST CREATE PROTECTED", () => {
 
     });
 
-    it("Should be 400, send blogId existing blog", async () => {
+    it("Should be 404, when create post not existing blogId", async () => {
         let blogResponse = await createBlog();
         let blogId = new ObjectId();
         let blog = blogResponse.body;
@@ -128,24 +128,14 @@ describe("POST CREATE PROTECTED", () => {
         }
 
         let response = await createPost(passedPost);
-        expect(response.status).toBe(StatusCode.BAD_REQUEST_400);
-        expect(response.body).toEqual({
-            errorsMessages: [
-                {
-                    field: "blogId",
-                    message: expect.any(String)
-                }
-            ]
-        })
+        expect(response.status).toBe(StatusCode.NOT_FOUND_404);
 
         const posts = await fetchPostsWithPagingTest(app);
         expect(posts.body.items.length).toBe(0);
     });
-    it("Should be 400, blogId empty", async () => {
-        let blogResponse = await createBlog();
-
-        let blog = blogResponse.body;
-        let passedPost = {
+    it("Should be 404, when passed body.blogId an empty", async () => {
+        await createBlog();
+        const passedPost = {
             ...POST_INPUT_VALID_WITHOUT_BLOG_ID,
             blogId: ""
         }
@@ -377,8 +367,8 @@ describe("POST UPDATE PROTECTED", () => {
     });
 
     it("Should be 204", async () => {
-        let blogCreateResponse = await createBlog();
-        let blog = blogCreateResponse.body;
+        const blogCreateResponse = await createBlog();
+        const blog = blogCreateResponse.body;
         expect(blogCreateResponse.status).toBe(StatusCode.CREATED_201);
 
         let passedPost = {
@@ -386,10 +376,10 @@ describe("POST UPDATE PROTECTED", () => {
             blogId: blog.id
         }
 
-        let res = await createPost(passedPost, authHeaderBasicValid);
-        let postId = res.body.id;
+        const res = await createPost(passedPost, authHeaderBasicValid);
+        const postId = res.body.id;
 
-        let expectPost = {
+        const expectPost = {
             ...passedPost,
             blogName: blog.name,
             title: generateRandomStringForTest(8),
@@ -610,7 +600,7 @@ describe("POST PUBLIC", () => {
         let defaultPageSize = 2;
         let expectedPagesCount = Math.ceil(totalDocuments / defaultPageSize);
 
-        let res = await fetchPostsWithPagingTest(app, {pageSize:defaultPageSize});
+        let res = await fetchPostsWithPagingTest(app, {pageSize: defaultPageSize});
         let body = res.body;
 
         expect(body.totalCount).toBe(totalDocuments);

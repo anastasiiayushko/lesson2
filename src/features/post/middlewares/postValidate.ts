@@ -1,7 +1,6 @@
 import {body} from 'express-validator';
 import {BlogRepository} from "../../blog/dal/blogRepository";
 
-const blogRepository = new BlogRepository();
 
 const titleValidate = body('title').isString().withMessage("filed to be string")
     .trim().notEmpty().withMessage("field is empty")
@@ -16,21 +15,14 @@ const contentValidate = body('content').isString().withMessage("filed to be stri
     .trim().notEmpty().withMessage("filed is empty")
     .isLength({max: 1000}).withMessage("field is too long. Max len 1000 symbols");
 
-
-const blogIdValidate = body('blogId')
-    .isString().withMessage("field to be string")
+const blogIdValidate = body('blogId').isString().withMessage("filed to be string")
     .trim().notEmpty().withMessage("filed is empty")
-    .custom(async (blogId) => {
-        let blog = await blogRepository.getById(blogId);
-        if (blog) {
-            return true;
-        }
-        throw new Error("Blog doesn't exist");
-    });
+
+
 
 export const postValidate = [titleValidate, shortDescriptionValidate, contentValidate, blogIdValidate];
 export const postValidateWithoutBlogId = [
     titleValidate,
     shortDescriptionValidate,
-    contentValidate
+    contentValidate,
 ];

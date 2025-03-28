@@ -2,12 +2,12 @@ import express from "express";
 import {SETTINGS} from "./settings";
 import {blogRouter} from "./features/blog/blog.router";
 import {testRouter} from "./features/test/test.router";
-import {postRouter} from "./features/post/post.router";
 import userRouter from "./features/user/user.router";
 import authRouter from "./features/auth/auth.router";
 import commentRouter from "./features/comment/comments.router";
 import cookieParser from "cookie-parser";
 import securityRouter from "./features/sessions/security.router";
+import {postRouter} from "./features/post/api/post.router";
 
 export const app = express();
 

@@ -15,7 +15,7 @@ commentRouter.get('/:id', extractUserIdMiddleware, commentsController.getComment
 commentRouter.put('/:commentId', tokenAuthMiddleware, ...commentValidate, validateInputMiddleware, commentsController.updateCommentsById.bind(commentsController));
 commentRouter.delete('/:commentId', tokenAuthMiddleware, commentsController.deleteCommentById.bind(commentsController));
 
-commentRouter.put('/:commentId/like-status', tokenAuthMiddleware, likeStatusValidate, validateInputMiddleware, commentsController.setLikeComment.bind(commentsController));
+commentRouter.put('/:commentId/like-status', tokenAuthMiddleware, ...likeStatusValidate, validateInputMiddleware, commentsController.setLikeComment.bind(commentsController));
 
 
 export default commentRouter;

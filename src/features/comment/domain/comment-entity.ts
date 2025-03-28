@@ -55,7 +55,7 @@ export interface ICommentCreateInput {
 }
 
 commentSchema.static('createComment', function (dto: ICommentCreateInput) {
-    const comment = {
+    const payload = {
         content: dto.content,
         commentatorInfo: {
             userId: new ObjectId(dto.userId),
@@ -68,7 +68,8 @@ commentSchema.static('createComment', function (dto: ICommentCreateInput) {
         },
         createdAt: new Date(),
     }
-    return this.create(comment);
+    const comment = this.create(payload)
+    return comment
 });
 
 commentSchema.pre('deleteOne', { document: true, query: false }, function(doc) {

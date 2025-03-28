@@ -1,13 +1,11 @@
 import {CommentsQueryRepository} from "./CommentsQueryRepository";
 import {CommentViewModelType} from "../core/type/input-outup-commets";
-import {commentCollection} from "../../../db/db";
 import {ObjectId} from "mongodb";
 import {mappedCommentDbToView} from "./mapper/mappedCommentDbToView";
 import {CommentQueryInputType} from "../helpers/commentQueryPagingDef";
-import {PaginationViewModelType} from "../../../types/input-output-types/pagination-output-types";
 import {injectable} from "inversify";
 import {commentModel} from "../domain/comment-entity";
-import {likeModel, LikeStatusEnum} from "../../like/domain/like.entity";
+import {LikeModel, LikeStatusEnum} from "../../like/domain/like.entity";
 
 @injectable()
 export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
@@ -19,7 +17,7 @@ export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
         }
         let status = LikeStatusEnum.None;
         if (userId) {
-            const like = await likeModel.findOne({authorId: userId, parentId: id}).lean();
+            const like = await LikeModel.findOne({authorId: userId, parentId: id}).lean();
             if (like) {
                 status = like.status;
             }
@@ -52,7 +50,7 @@ export class CommentsQueryRepositoryMongo implements CommentsQueryRepository {
             const commentIds = items.map((comment) => comment._id.toString());
 
             // Найти все лайки, которые поставил пользователь для данных комментариев
-            const userLikes = await likeModel
+            const userLikes = await LikeModel
                 .find({authorId: userId, parentId: {$in: commentIds}})
                 .lean();
 

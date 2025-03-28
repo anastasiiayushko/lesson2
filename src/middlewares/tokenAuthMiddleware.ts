@@ -23,6 +23,7 @@ export const tokenAuthMiddleware = async (req: Request, res: Response, next: Nex
         }
 
         req.userId = decode!.userId;
+        console.log('next')
         next();
 
     } catch (err) {

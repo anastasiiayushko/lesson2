@@ -1,7 +1,7 @@
 import {CommentsRepository} from "../../dal/CommentsRepository";
 import {ServiceResponseType} from "../../../../types/service-response-type";
 import {StatusCode} from "../../../../types/status-code-types";
-import {PostRepository} from "../../../post/dal/postRepository";
+import {PostRepository} from "../../../post/infrastructure/repositories/postRepository";
 import {UserRepository} from "../../../user/dal/UserRepository";
 import {inject, injectable} from "inversify";
 import {CommentsRepositoryMongo} from "../../dal/CommentsRepositoryMongo";
@@ -30,6 +30,7 @@ export class CommentsService {
             }
         }
         let user = await this.userRepository.getUserById(userId);
+
         if (!user) {
             return {
                 status: StatusCode.SERVER_ERROR,
@@ -37,15 +38,18 @@ export class CommentsService {
             }
         }
         try {
-            let commentId = await this.commentsRepository.createComment({
+            const comment = await commentModel.createComment({
                 postId: postId,
                 userId: userId,
                 userLogin: user.login,
                 content: commentBody
             });
+
+            await this.commentsRepository.save(comment);
+
             return {
                 status: StatusCode.CREATED_201,
-                data: commentId,
+                data: comment._id.toString(),
                 extensions: []
             }
         } catch (err: unknown) {
@@ -106,7 +110,7 @@ export class CommentsService {
     }
 
 
-    async updateLikeStatusForCommentAndRecalculate(commentId: string, userId:string, likeStatus: LikeStatusEnum): Promise<ServiceResponseType> {
+    async updateLikeStatusForCommentAndRecalculate(commentId: string, userId: string, likeStatus: LikeStatusEnum): Promise<ServiceResponseType> {
         const comment = await commentModel.findById({_id: commentId});
 
         if (!comment) {
@@ -115,21 +119,31 @@ export class CommentsService {
                 extensions: [], data: null
             };
         }
+
         const likeResult = await this.likeService.setStatus(commentId, userId, likeStatus);
-        console.log('likeResult', likeResult);
-        if(likeResult.status === StatusCode.BAD_REQUEST_400 || likeResult.status === StatusCode.SERVER_ERROR || likeResult.extensions.length>0) {
+        if (likeResult.status === StatusCode.UNAUTHORIZED_401) {
+            return {
+                status: StatusCode.UNAUTHORIZED_401,
+                extensions: likeResult.extensions,
+                data: null
+            }
+        }
+
+        if (likeResult.status === StatusCode.BAD_REQUEST_400 || likeResult.status === StatusCode.SERVER_ERROR || likeResult.extensions.length > 0) {
             return {
                 status: StatusCode.BAD_REQUEST_400,
                 extensions: likeResult.extensions,
                 data: null
             }
         }
+
         const calculateLikes = await this.likeService.calculateLikeStatusByParentId(commentId);
-        comment.likesInfo ={
+        comment.likesInfo = {
             likesCount: calculateLikes.likesCount,
             dislikesCount: calculateLikes.dislikesCount
         }
-        await this.commentsRepository.save(comment)
+        await this.commentsRepository.save(comment);
+
         return {
             status: StatusCode.NO_CONTENT_204,
             extensions: [], data: null

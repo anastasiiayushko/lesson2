@@ -59,7 +59,7 @@ const blogSchema = new mongoose.Schema<IBlog>({
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
+        default: new Date(),
     },
     isMembership: {
         type: Boolean, required: true

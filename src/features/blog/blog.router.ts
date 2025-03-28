@@ -7,6 +7,7 @@ import {BlogController} from "./controllers/blogController";
 import {postValidateWithoutBlogId} from "../post/middlewares/postValidate";
 import {postQueryValidate} from "../post/middlewares/postQueryValidate";
 import {container} from "../../inversify.config";
+import {extractUserIdMiddleware} from "../../middlewares/extractUserIdMiddleware";
 
 
 export const blogRouter = Router();
@@ -19,7 +20,7 @@ blogRouter.get('/', ...blogQueryValidate, validateInputMiddleware, blogControlle
 /** returns blogs by id*/
 blogRouter.get('/:id', blogController.getBlogById.bind(blogController));
 /** returns all posts for specified blog */
-blogRouter.get('/:blogId/posts', ...postQueryValidate, validateInputMiddleware, blogController.getPostsByBlogIdWithPaging.bind(blogController));
+blogRouter.get('/:blogId/posts', ...postQueryValidate, validateInputMiddleware, extractUserIdMiddleware, blogController.getPostsByBlogIdWithPaging.bind(blogController));
 
 
 /** protected points */

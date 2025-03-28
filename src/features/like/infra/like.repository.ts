@@ -1,9 +1,13 @@
 import {injectable} from "inversify";
-import {LikeDocument} from "../domain/like.entity";
+import {LikeDocument,  LikeModel} from "../domain/like.entity";
 
 @injectable()
 export class LikeRepository {
-    async save(like: LikeDocument){
+    async findById(id: string): Promise<LikeDocument | null> {
+        return await LikeModel.findById(id);
+    }
+
+    async save(like: LikeDocument) {
         return await like.save();
     }
 
